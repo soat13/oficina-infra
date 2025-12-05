@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: appgo
+  namespace: fiap
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: appgo
+  template:
+    metadata:
+      labels:
+        app: appgo
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+        - image: redmine
+          name: golang
+          envFrom:
+            - secretRef:
+                name: app-sc
+            - configMapRef:
+                name: app-config
+          resources:
+            limits:
+              cpu: 500m
+              memory: 200Mi
+            requests:
+              cpu: 200m
+              memory: 100Mi
