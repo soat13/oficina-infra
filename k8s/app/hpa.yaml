@@ -4,12 +4,30 @@ metadata:
   name: appgo
   namespace: fiap
 spec:
+  behavior:
+    scaleDown:
+      selectPolicy: Min
+      stabilizationWindowSeconds: 30
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+      - type: Pods
+        value: 4
+        periodSeconds: 15
+      selectPolicy: Max
   maxReplicas: 10
   metrics:
   - resource:
       name: cpu
       target:
-        averageUtilization: 30
+        averageUtilization: 50
         type: Utilization
     type: Resource
   minReplicas: 1
@@ -17,6 +35,3 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: appgo
-status:
-  currentMetrics: null
-  desiredReplicas: 0

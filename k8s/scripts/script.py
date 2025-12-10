@@ -5,9 +5,9 @@ import time
 # ==========================
 # CONFIGURAÇÕES DO TESTE
 # ==========================
-URL = "http://192.168.0.250:31851/"
-CONCURRENT_REQUESTS = 50  # usuários virtuais simultâneos
-TOTAL_REQUESTS = 1000     # total de requisições
+URL = "http://a29954c0e8ae449e792cc60bac7fb00d-361890160.us-east-1.elb.amazonaws.com:3000/"
+CONCURRENT_REQUESTS = 500  # usuários virtuais simultâneos
+TOTAL_REQUESTS = 10000   # total de requisições
 RAMP_UP = 5               # segundos para ramp-up
 # ==========================
 
@@ -26,7 +26,7 @@ async def worker(name, session, queue, results):
         status, latency = await fetch(session, URL)
         results.append((status, latency))
         queue.task_done()
-        await asyncio.sleep(0)  # cede o controle
+        await asyncio.sleep(1)  # cede o controle
 
 async def main():
     queue = asyncio.Queue()

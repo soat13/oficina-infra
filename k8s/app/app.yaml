@@ -4,7 +4,7 @@ metadata:
   name: appgo
   namespace: fiap
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: appgo
@@ -13,10 +13,16 @@ spec:
       labels:
         app: appgo
     spec:
-      terminationGracePeriodSeconds: 10
+      terminationGracePeriodSeconds: 3
       containers:
-        - image: redmine
-          name: golang
+        - image: python:3.12.12-alpine3.23
+          imagePullPolicy: IfNotPresent
+          name: py
+          command:
+            - python
+            - -m
+            - http.server
+            - "8000"
           envFrom:
             - secretRef:
                 name: app-sc
@@ -24,8 +30,8 @@ spec:
                 name: app-config
           resources:
             limits:
-              cpu: 500m
-              memory: 200Mi
+              cpu: 50m
+              memory: 20Mi
             requests:
-              cpu: 200m
-              memory: 100Mi
+              cpu: 20m
+              memory: 20Mi
