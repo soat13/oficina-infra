@@ -54,7 +54,7 @@ resource "aws_security_group" "rds" {
   )
 }
 
-# RDS Parameter Group (optional, for custom PostgreSQL settings)
+# RDS Parameter Group
 resource "aws_db_parameter_group" "main" {
   count  = var.create_parameter_group ? 1 : 0
   family = var.parameter_group_family
@@ -79,7 +79,7 @@ resource "aws_db_instance" "main" {
   allocated_storage     = var.allocated_storage
   max_allocated_storage = var.max_allocated_storage
   storage_type          = var.storage_type
-  storage_encrypted      = true
+  storage_encrypted     = true
   kms_key_id            = var.kms_key_id
 
   db_name  = var.database_name
@@ -93,7 +93,7 @@ resource "aws_db_instance" "main" {
   multi_az          = false
 
   backup_retention_period = 0
-  maintenance_window     = var.maintenance_window
+  maintenance_window      = var.maintenance_window
 
   skip_final_snapshot       = var.skip_final_snapshot
   final_snapshot_identifier = var.skip_final_snapshot ? null : "${var.db_name}-final-snapshot-${formatdate("YYYY-MM-DD-hhmm", timestamp())}"

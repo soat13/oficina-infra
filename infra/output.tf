@@ -88,16 +88,6 @@ output "kms_alias" {
   value       = module.kms.alias_name
 }
 
-output "secrets_manager_secret_arn" {
-  description = "ARN of the Secrets Manager secret"
-  value       = module.secrets_manager.secret_arn
-}
-
-output "secrets_manager_secret_name" {
-  description = "Name of the Secrets Manager secret"
-  value       = module.secrets_manager.secret_name
-}
-
 output "eks_cluster_role_arn" {
   description = "IAM role ARN for EKS cluster"
   value       = module.iam.eks_cluster_role_arn

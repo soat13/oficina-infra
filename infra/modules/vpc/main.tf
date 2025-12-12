@@ -12,7 +12,7 @@ resource "aws_vpc" "main" {
   tags = merge(
     var.tags,
     {
-      Name = "${var.name}-vpc"
+      Name                                        = "${var.name}-vpc"
       "kubernetes.io/cluster/${var.cluster_name}" = "shared"
     }
   )
@@ -30,26 +30,26 @@ resource "aws_internet_gateway" "main" {
   )
 }
 
-# Public Subnets (for NAT Gateways only, nodes will not be placed here)
+# Public Subnets
 resource "aws_subnet" "public" {
   count             = var.availability_zones_count
   vpc_id            = aws_vpc.main.id
   cidr_block        = cidrsubnet(var.vpc_cidr, 8, count.index)
   availability_zone = data.aws_availability_zones.available.names[count.index]
-  
+
   map_public_ip_on_launch = true
 
   tags = merge(
     var.tags,
     {
-      Name = "${var.name}-public-subnet-${count.index + 1}"
-      "kubernetes.io/role/elb" = "1"
+      Name                                        = "${var.name}-public-subnet-${count.index + 1}"
+      "kubernetes.io/role/elb"                    = "1"
       "kubernetes.io/cluster/${var.cluster_name}" = "shared"
     }
   )
 }
 
-# Private Subnets (for nodes - no public IPs)
+# Private Subnets
 resource "aws_subnet" "private" {
   count             = var.availability_zones_count
   vpc_id            = aws_vpc.main.id
@@ -59,8 +59,8 @@ resource "aws_subnet" "private" {
   tags = merge(
     var.tags,
     {
-      Name = "${var.name}-private-subnet-${count.index + 1}"
-      "kubernetes.io/role/internal-elb" = "1"
+      Name                                        = "${var.name}-private-subnet-${count.index + 1}"
+      "kubernetes.io/role/internal-elb"           = "1"
       "kubernetes.io/cluster/${var.cluster_name}" = "shared"
     }
   )
@@ -81,7 +81,7 @@ resource "aws_eip" "nat" {
   depends_on = [aws_internet_gateway.main]
 }
 
-# NAT Gateways (in public subnets for outbound internet access)
+# NAT Gateways
 resource "aws_nat_gateway" "main" {
   count         = var.availability_zones_count
   allocation_id = aws_eip.nat[count.index].id
@@ -121,7 +121,7 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
-# Route Tables for Private Subnets (route through NAT Gateways)
+# Route Tables for Private Subnets
 resource "aws_route_table" "private" {
   count  = var.availability_zones_count
   vpc_id = aws_vpc.main.id

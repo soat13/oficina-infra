@@ -128,12 +128,6 @@ variable "node_labels" {
   }
 }
 
-variable "secret_recovery_window" {
-  description = "Number of days that AWS Secrets Manager waits before it can delete the secret"
-  type        = number
-  default     = 30
-}
-
 variable "existing_cluster_role_arn" {
   description = "ARN of existing IAM role for EKS cluster (required - no roles will be created)"
   type        = string

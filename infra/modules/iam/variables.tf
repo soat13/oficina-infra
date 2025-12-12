@@ -11,13 +11,11 @@ variable "aws_region" {
 variable "existing_cluster_role_arn" {
   description = "ARN of existing IAM role for EKS cluster (required)"
   type        = string
-  default = "arn:aws:iam::590183784559:role/LabRole"
 }
 
 variable "existing_node_role_arn" {
   description = "ARN of existing IAM role for EKS nodes (required)"
   type        = string
-  default = "arn:aws:iam::590183784559:role/LabRole"
 }
 
 variable "attach_policies" {
@@ -30,24 +28,6 @@ variable "create_policies" {
   description = "Whether to create custom IAM policies (set to false if you don't have permission to create policies)"
   type        = bool
   default     = false
-}
-
-variable "enable_secrets_manager_access" {
-  description = "Enable Secrets Manager access for nodes (requires create_policies=true or use existing policy ARN)"
-  type        = bool
-  default     = false
-}
-
-variable "secrets_manager_secret_arns" {
-  description = "List of Secrets Manager secret ARNs that nodes can access"
-  type        = list(string)
-  default     = []
-}
-
-variable "kms_key_arn" {
-  description = "KMS key ARN for Secrets Manager decryption"
-  type        = string
-  default     = ""
 }
 
 variable "tags" {

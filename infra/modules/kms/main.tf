@@ -1,7 +1,7 @@
 # Data sources
 data "aws_caller_identity" "current" {}
 
-# KMS Key for EKS Encryption
+# KMS Key
 resource "aws_kms_key" "main" {
   description             = var.description
   deletion_window_in_days = var.deletion_window
@@ -34,21 +34,6 @@ resource "aws_kms_key" "main" {
         ]
         Resource = "*"
       },
-      {
-        Sid    = "Allow Secrets Manager to use the key"
-        Effect = "Allow"
-        Principal = {
-          Service = "secretsmanager.amazonaws.com"
-        }
-        Action = [
-          "kms:Encrypt",
-          "kms:Decrypt",
-          "kms:ReEncrypt*",
-          "kms:GenerateDataKey*",
-          "kms:DescribeKey"
-        ]
-        Resource = "*"
-      }
     ]
   })
 

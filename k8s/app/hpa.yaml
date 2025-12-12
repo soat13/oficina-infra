@@ -1,7 +1,7 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: appgo
+  name: oficina
   namespace: fiap
 spec:
   behavior:
@@ -34,4 +34,4 @@ spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: appgo
+    name: oficina

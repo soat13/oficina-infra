@@ -41,8 +41,6 @@ node_labels = {
   Workload    = "general"
 }
 
-secret_recovery_window = 30
-
 existing_cluster_role_arn = "arn:aws:iam::590183784559:role/LabRole"
 
 existing_node_role_arn = "arn:aws:iam::590183784559:role/LabRole"
@@ -68,7 +66,7 @@ rds_max_allocated_storage = 100
 
 rds_storage_type = "gp3"
 
-rds_availability_zone = null # Uses first available AZ if null
+rds_availability_zone = null
 
 rds_maintenance_window = "mon:04:00-mon:05:00"
 
@@ -81,7 +79,6 @@ rds_enabled_cloudwatch_logs_exports = ["postgresql"]
 tags = {
   Environment = "dev"
   ManagedBy   = "terraform"
-  Project     = "fiap-soat"
-  Team        = "platform"
+  Project     = "oficina"
 }
 
