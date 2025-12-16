@@ -41,9 +41,9 @@ node_labels = {
   Workload    = "general"
 }
 
-existing_cluster_role_arn = "arn:aws:iam::590183784559:role/LabRole"
+existing_cluster_role_arn = "arn:aws:iam::610276426093:role/LabRole"
 
-existing_node_role_arn = "arn:aws:iam::590183784559:role/LabRole"
+existing_node_role_arn = "arn:aws:iam::610276426093:role/LabRole"
 
 attach_iam_policies = false
 
@@ -81,4 +81,7 @@ tags = {
   ManagedBy   = "terraform"
   Project     = "oficina"
 }
+
+# S3 Configuration
+bucket_name="tfstate-oficina"
 
