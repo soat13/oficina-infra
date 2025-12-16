@@ -205,6 +205,12 @@ variable "rds_availability_zone" {
   default     = null
 }
 
+variable "rds_backup_retention_period" {
+  description = "The days to retain backups for"
+  type        = number
+  default     = 5
+}
+
 variable "rds_maintenance_window" {
   description = "Preferred maintenance window (UTC)"
   type        = string
@@ -227,12 +233,6 @@ variable "rds_enabled_cloudwatch_logs_exports" {
   description = "List of log types to export to CloudWatch"
   type        = list(string)
   default     = ["postgresql"]
-}
-
-# S3 Variables
-variable "bucket_name" {
-  description = "Name of the S3 bucket"
-  type        = string
 }
 
 variable "tags" {

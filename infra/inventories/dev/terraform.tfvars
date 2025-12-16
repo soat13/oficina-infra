@@ -52,9 +52,9 @@ create_iam_policies = false
 # RDS PostgreSQL Configuration
 rds_database_name = "postgres"
 
-rds_master_username = "postgres"
+# rds_master_username = "postgres"
 
-rds_master_password = "ChangeMe123!" # Change this to a secure password
+# rds_master_password = "ChangeMe123!"
 
 rds_engine_version = "16.10"
 
@@ -81,7 +81,3 @@ tags = {
   ManagedBy   = "terraform"
   Project     = "oficina"
 }
-
-# S3 Configuration
-bucket_name="tfstate-oficina"
-

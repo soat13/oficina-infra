@@ -83,6 +83,12 @@ variable "availability_zone" {
   default     = null
 }
 
+variable "backup_retention_period" {
+  description = "The days to retain backups for"
+  type        = number
+  default     = 5
+}
+
 variable "maintenance_window" {
   description = "Preferred maintenance window (UTC)"
   type        = string
@@ -124,4 +130,3 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
-

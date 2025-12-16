@@ -97,6 +97,7 @@ module "rds_postgres" {
   max_allocated_storage           = var.rds_max_allocated_storage
   storage_type                    = var.rds_storage_type
   availability_zone               = var.rds_availability_zone
+  backup_retention_period         = var.rds_backup_retention_period
   maintenance_window              = var.rds_maintenance_window
   skip_final_snapshot             = var.rds_skip_final_snapshot
   deletion_protection             = var.rds_deletion_protection

@@ -92,7 +92,7 @@ resource "aws_db_instance" "main" {
   availability_zone = var.availability_zone != null ? var.availability_zone : data.aws_availability_zones.available.names[0]
   multi_az          = false
 
-  backup_retention_period = 0
+  backup_retention_period = var.backup_retention_period
   maintenance_window      = var.maintenance_window
 
   skip_final_snapshot       = var.skip_final_snapshot
