@@ -49,7 +49,7 @@ jobs:
         with:
           args: >
             -Dsonar.qualitygate.wait=true
-            -Dsonar.qualitygate.timeout=200
+            -Dsonar.qualitygate.timeout=200  
 
   terraform-plan:
     name: Terraform Plan
@@ -112,9 +112,9 @@ jobs:
 
   terraform-apply:
     name: Terraform Apply
-    needs: terraform-plan
+    needs: [sonar-scan, terraform-plan]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    if: github.ref == 'refs/heads/feat/pipeline' || github.event_name == 'workflow_dispatch'
     environment:
       name: ${{ github.event.inputs.environment || 'dev' }}
     outputs:
@@ -161,9 +161,13 @@ jobs:
       - name: Terraform Output
         id: output
         run: |
-          echo "eks_cluster_endpoint=$(terraform output -raw eks_cluster_endpoint)" >> $GITHUB_OUTPUT
-          echo "eks_cluster_name=$(terraform output -raw eks_cluster_name)" >> $GITHUB_OUTPUT
-          echo "rds_endpoint=$(terraform output -raw rds_endpoint)" >> $GITHUB_OUTPUT
+          terraform output
+          CLUSTER_NAME=$(terraform output -raw cluster_name)
+          CLUSTER_ENDPOINT=$(terraform output -raw cluster_endpoint)
+          RDS_ENDPOINT=$(terraform output -raw rds_endpoint)
+          echo "eks_cluster_name=${CLUSTER_NAME}" >> $GITHUB_OUTPUT
+          echo "eks_cluster_endpoint=${CLUSTER_ENDPOINT}" >> $GITHUB_OUTPUT
+          echo "rds_endpoint=${RDS_ENDPOINT}" >> $GITHUB_OUTPUT
         working-directory: ./infra
 
       - name: Save Terraform Outputs
@@ -177,3 +181,57 @@ jobs:
           name: terraform-outputs-${{ env.ENVIRONMENT }}
           path: infra/terraform-outputs.json
           retention-days: 30
+
+  k8s-deploy:
+    name: Deploy to Kubernetes
+    needs: terraform-apply
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/feat/pipeline' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@56d6a583f00f6bad6d19d91d53a7bc3b8143d0e9
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update Kubeconfig
+        run: |
+          CLUSTER_NAME="${{ needs.terraform-apply.outputs.eks_cluster_name }}"
+          aws eks update-kubeconfig --name "${CLUSTER_NAME}" --region ${{ env.AWS_REGION }}
+
+      - name: Apply Namespace and Base Resources
+        run: |
+          kubectl apply -f k8s/default/default.yaml
+
+      - name: Create Kubernetes Secret
+        env:
+          K8S_JWT_SECRET: ${{ secrets.K8S_JWT_SECRET }}
+          K8S_POSTGRES_PASSWORD: ${{ secrets.K8S_POSTGRES_PASSWORD }}
+          K8S_POSTGRES_USER: ${{ secrets.K8S_POSTGRES_USER }}
+        run: |
+          kubectl create secret generic app-sc \
+            --from-literal=JWT_SECRET="${K8S_JWT_SECRET}" \
+            --from-literal=POSTGRES_PASSWORD="${K8S_POSTGRES_PASSWORD}" \
+            --from-literal=POSTGRES_USER="${K8S_POSTGRES_USER}" \
+            --namespace=fiap \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy Application
+        run: |
+          kubectl apply -f k8s/app/
+
+      - name: Wait for Deployment Rollout
+        run: |
+          kubectl rollout status deployment/oficina -n fiap --timeout=5m
+
+      - name: Get Service Load Balancer URL
+        run: |
+          kubectl wait --for=jsonpath='{.status.loadBalancer.ingress}' service/ext-lb -n fiap --timeout=5m || true
+          echo "Service URL:"
+          kubectl get svc ext-lb -n fiap -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+

@@ -12,16 +12,6 @@ metadata:
   namespace: fiap
 ---
 apiVersion: v1
-kind: Secret
-metadata:
-  name: app-sc
-  namespace: fiap
-data:
-  JWT_SECRET: SldUX1NFQ1JFVAo=
-  POSTGRES_PASSWORD: X19QT1NUR1JFU19QQVNTV09SRF9fCg==
-  POSTGRES_USER: X19QT1NUR1JFU19VU0VSX18K
----
-apiVersion: v1
 kind: ConfigMap
 metadata:
   name: app-config

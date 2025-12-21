@@ -167,6 +167,16 @@ variable "rds_master_password" {
   description = "Master password for the database"
   type        = string
   sensitive   = true
+
+  validation {
+    condition     = can(regex("^[a-zA-Z0-9!#$%&()*+,\\-.:;<=>?\\[\\]^_{|}~]+$", var.rds_master_password))
+    error_message = "The password contains invalid characters. Only printable ASCII characters except '/', '@', '\"', and spaces are allowed."
+  }
+
+  validation {
+    condition     = length(var.rds_master_password) >= 8
+    error_message = "The password must be at least 8 characters long."
+  }
 }
 
 variable "rds_engine_version" {
