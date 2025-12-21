@@ -18,8 +18,6 @@ metadata:
   namespace: fiap
 data:
   POSTGRES_DB: "oficina"
-  SONAR_JDBC_USERNAME: "postgres"
-  SONAR_JDBC_PASSWORD: "postgres"
   SONAR_JDBC_URL: "jdbc:postgresql://db:5432/sonarqube"
   PG_DSN: "postgres://postgres:postgres@db:5432/oficina?sslmode=disable"
   PORT: "8080"

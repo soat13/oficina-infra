@@ -7,17 +7,6 @@ on:
   pull_request:
     branches:
       - '*'
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Environment to deploy'
-        required: true
-        default: 'dev'
-        type: choice
-        options:
-          - dev
-          - hom
-          - prod
 
 permissions:
   contents: read
@@ -46,10 +35,6 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          args: >
-            -Dsonar.qualitygate.wait=true
-            -Dsonar.qualitygate.timeout=200  
 
   terraform-plan:
     name: Terraform Plan
@@ -114,7 +99,7 @@ jobs:
     name: Terraform Apply
     needs: [sonar-scan, terraform-plan]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/feat/pipeline' || github.event_name == 'workflow_dispatch'
+    if: github.ref == 'refs/main'
     environment:
       name: ${{ github.event.inputs.environment || 'dev' }}
     outputs:
@@ -186,7 +171,7 @@ jobs:
     name: Deploy to Kubernetes
     needs: terraform-apply
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/feat/pipeline' || github.event_name == 'workflow_dispatch'
+    if: github.ref == 'refs/main'
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
