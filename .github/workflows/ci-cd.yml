@@ -1,0 +1,222 @@
+name: Infrastructure CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - '*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: us-east-1
+  TF_VERSION: 1.14.2
+  ENVIRONMENT: ${{ github.event.inputs.environment || 'dev' }}
+
+jobs:
+  sonar-scan:
+    name: SonarCloud Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  terraform-plan:
+    name: Terraform Plan
+    needs: sonar-scan
+    runs-on: ubuntu-latest
+    outputs:
+      tfplan_exitcode: ${{ steps.plan.outputs.exitcode }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with: 
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@56d6a583f00f6bad6d19d91d53a7bc3b8143d0e9
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Format Check
+        id: fmt
+        run: terraform fmt -check -recursive
+        working-directory: ./infra
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        working-directory: ./infra
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+        working-directory: ./infra
+
+      - name: Terraform Plan
+        id: plan
+        env:
+          TF_VAR_rds_master_password: ${{ secrets.TF_RDS_MASTER_PASSWORD }}
+          TF_VAR_rds_master_username: ${{ secrets.TF_RDS_MASTER_USERNAME }}
+        run: |
+          terraform plan \
+            -var-file=inventories/${{ env.ENVIRONMENT }}/terraform.tfvars \
+            -out=tfplan \
+            -no-color \
+            -detailed-exitcode || echo "exitcode=$?" >> $GITHUB_OUTPUT
+        working-directory: ./infra
+
+      - name: Upload Terraform Plan
+        uses: actions/upload-artifact@v6
+        with:
+          name: tfplan-${{ env.ENVIRONMENT }}
+          path: infra/tfplan
+          retention-days: 5
+
+
+  terraform-apply:
+    name: Terraform Apply
+    needs: [sonar-scan, terraform-plan]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: ${{ github.event.inputs.environment || 'dev' }}
+    outputs:
+      eks_cluster_name: ${{ steps.output.outputs.eks_cluster_name }}
+      eks_cluster_endpoint: ${{ steps.output.outputs.eks_cluster_endpoint }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@56d6a583f00f6bad6d19d91d53a7bc3b8143d0e9
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Init 
+        run: terraform init
+        working-directory: ./infra
+
+      - name: Download Terraform Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan-${{ env.ENVIRONMENT }}
+          path: infra/
+
+      - name: Terraform Apply
+        id: apply
+        env:
+          TF_VAR_rds_master_password: ${{ secrets.TF_RDS_MASTER_PASSWORD }}
+          TF_VAR_rds_master_username: ${{ secrets.TF_RDS_MASTER_USERNAME }}
+        run: |
+          terraform apply \
+            -auto-approve tfplan
+        working-directory: ./infra
+
+      - name: Terraform Output
+        id: output
+        run: |
+          terraform output
+          CLUSTER_NAME=$(terraform output -raw cluster_name)
+          CLUSTER_ENDPOINT=$(terraform output -raw cluster_endpoint)
+          RDS_ENDPOINT=$(terraform output -raw rds_endpoint)
+          echo "eks_cluster_name=${CLUSTER_NAME}" >> $GITHUB_OUTPUT
+          echo "eks_cluster_endpoint=${CLUSTER_ENDPOINT}" >> $GITHUB_OUTPUT
+          echo "rds_endpoint=${RDS_ENDPOINT}" >> $GITHUB_OUTPUT
+        working-directory: ./infra
+
+      - name: Save Terraform Outputs
+        run: |
+          terraform output -json > terraform-outputs.json
+        working-directory: ./infra
+
+      - name: Upload Terraform Outputs
+        uses: actions/upload-artifact@v6
+        with:
+          name: terraform-outputs-${{ env.ENVIRONMENT }}
+          path: infra/terraform-outputs.json
+          retention-days: 30
+
+  k8s-deploy:
+    name: Deploy to Kubernetes
+    needs: terraform-apply
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@56d6a583f00f6bad6d19d91d53a7bc3b8143d0e9
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update Kubeconfig
+        run: |
+          CLUSTER_NAME="${{ needs.terraform-apply.outputs.eks_cluster_name }}"
+          aws eks update-kubeconfig --name "${CLUSTER_NAME}" --region ${{ env.AWS_REGION }}
+
+      - name: Apply Namespace and Base Resources
+        run: |
+          kubectl apply -f k8s/default/default.yaml
+
+      - name: Create Kubernetes Secret
+        env:
+          K8S_JWT_SECRET: ${{ secrets.K8S_JWT_SECRET }}
+          K8S_POSTGRES_PASSWORD: ${{ secrets.K8S_POSTGRES_PASSWORD }}
+          K8S_POSTGRES_USER: ${{ secrets.K8S_POSTGRES_USER }}
+        run: |
+          kubectl create secret generic app-sc \
+            --from-literal=JWT_SECRET="${K8S_JWT_SECRET}" \
+            --from-literal=POSTGRES_PASSWORD="${K8S_POSTGRES_PASSWORD}" \
+            --from-literal=POSTGRES_USER="${K8S_POSTGRES_USER}" \
+            --namespace=fiap \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy Application
+        run: |
+          kubectl apply -f k8s/app/
+
+      - name: Wait for Deployment Rollout
+        run: |
+          kubectl rollout status deployment/oficina -n fiap --timeout=5m
+
+      - name: Get Service Load Balancer URL
+        run: |
+          kubectl wait --for=jsonpath='{.status.loadBalancer.ingress}' service/ext-lb -n fiap --timeout=5m || true
+          echo "Service URL:"
+          kubectl get svc ext-lb -n fiap -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+

@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oficina
+  namespace: fiap
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: oficina
+  template:
+    metadata:
+      labels:
+        app: oficina
+    spec:
+      terminationGracePeriodSeconds: 3
+      containers:
+        - image: python:3.12.12-alpine3.23
+          imagePullPolicy: IfNotPresent
+          name: py
+          command:
+            - python
+            - -m
+            - http.server
+            - "8000"
+          envFrom:
+            - secretRef:
+                name: app-sc
+            - configMapRef:
+                name: app-config
+          resources:
+            limits:
+              cpu: 50m
+              memory: 20Mi
+            requests:
+              cpu: 20m
+              memory: 20Mi

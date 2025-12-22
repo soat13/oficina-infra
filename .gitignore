@@ -1,0 +1,25 @@
+.env
+vendor
+.scannerwork
+*.http
+
+# test files
+coverage.out
+
+# ide folders
+.idea
+
+# Terraform
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+*.tfvars.backup
+.terraform.tfstate.lock.info
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+.scripts/
