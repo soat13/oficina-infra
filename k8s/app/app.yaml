@@ -15,7 +15,7 @@ spec:
     spec:
       terminationGracePeriodSeconds: 3
       containers:
-        - image: python:3.12.12-alpine3.23
+        - image: 590183784559.dkr.ecr.us-east-1.amazonaws.com:latest
           imagePullPolicy: IfNotPresent
           name: py
           command:
