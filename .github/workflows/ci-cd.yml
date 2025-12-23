@@ -200,11 +200,15 @@ jobs:
           K8S_JWT_SECRET: ${{ secrets.K8S_JWT_SECRET }}
           K8S_POSTGRES_PASSWORD: ${{ secrets.K8S_POSTGRES_PASSWORD }}
           K8S_POSTGRES_USER: ${{ secrets.K8S_POSTGRES_USER }}
+          K8S_POSTGRES_DB: ${{ secrets.K8S_POSTGRES_DB }}
+          K8S_PG_DSN: ${{ secrets.K8S_PG_DSN }}
         run: |
           kubectl create secret generic app-sc \
             --from-literal=JWT_SECRET="${K8S_JWT_SECRET}" \
             --from-literal=POSTGRES_PASSWORD="${K8S_POSTGRES_PASSWORD}" \
             --from-literal=POSTGRES_USER="${K8S_POSTGRES_USER}" \
+            --from-literal=POSTGRES_DB="${K8S_POSTGRES_DB}" \
+            --from-literal=PG_DSN="${K8S_PG_DSN}" \
             --namespace=fiap \
             --dry-run=client -o yaml | kubectl apply -f -
 
