@@ -66,7 +66,7 @@ rds_max_allocated_storage = 100
 
 rds_storage_type = "gp3"
 
-rds_availability_zone = null
+rds_availability_zone = "us-east-1a"
 
 rds_maintenance_window = "mon:04:00-mon:05:00"
 
