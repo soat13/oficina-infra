@@ -195,20 +195,39 @@ jobs:
         run: |
           kubectl apply -f k8s/default/default.yaml
 
+      - name: Download Terraform Outputs
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-outputs-${{ env.ENVIRONMENT }}
+          path: ./terraform-outputs/
+
+      - name: Extract RDS Information
+        id: rds_info
+        run: |
+          RDS_ENDPOINT=$(jq -r '.rds_address.value' ./terraform-outputs/terraform-outputs.json)
+          RDS_PORT=$(jq -r '.rds_port.value' ./terraform-outputs/terraform-outputs.json)
+          RDS_DATABASE=$(jq -r '.rds_database_name.value' ./terraform-outputs/terraform-outputs.json)
+          echo "endpoint=${RDS_ENDPOINT}" >> $GITHUB_OUTPUT
+          echo "port=${RDS_PORT}" >> $GITHUB_OUTPUT
+          echo "database=${RDS_DATABASE}" >> $GITHUB_OUTPUT
+
       - name: Create Kubernetes Secret
         env:
           K8S_JWT_SECRET: ${{ secrets.K8S_JWT_SECRET }}
-          K8S_POSTGRES_PASSWORD: ${{ secrets.K8S_POSTGRES_PASSWORD }}
-          K8S_POSTGRES_USER: ${{ secrets.K8S_POSTGRES_USER }}
-          K8S_POSTGRES_DB: ${{ secrets.K8S_POSTGRES_DB }}
-          K8S_PG_DSN: ${{ secrets.K8S_PG_DSN }}
+          RDS_USERNAME: ${{ secrets.TF_RDS_MASTER_USERNAME }}
+          RDS_PASSWORD: ${{ secrets.TF_RDS_MASTER_PASSWORD }}
+          RDS_ENDPOINT: ${{ steps.rds_info.outputs.endpoint }}
+          RDS_PORT: ${{ steps.rds_info.outputs.port }}
+          RDS_DATABASE: ${{ steps.rds_info.outputs.database }}
         run: |
+          PG_DSN="postgres://${RDS_USERNAME}:${RDS_PASSWORD}@${RDS_ENDPOINT}:${RDS_PORT}/${RDS_DATABASE}"
+          
           kubectl create secret generic app-sc \
             --from-literal=JWT_SECRET="${K8S_JWT_SECRET}" \
-            --from-literal=POSTGRES_PASSWORD="${K8S_POSTGRES_PASSWORD}" \
-            --from-literal=POSTGRES_USER="${K8S_POSTGRES_USER}" \
-            --from-literal=POSTGRES_DB="${K8S_POSTGRES_DB}" \
-            --from-literal=PG_DSN="${K8S_PG_DSN}" \
+            --from-literal=POSTGRES_PASSWORD="${RDS_PASSWORD}" \
+            --from-literal=POSTGRES_USER="${RDS_USERNAME}" \
+            --from-literal=POSTGRES_DB="${RDS_DATABASE}" \
+            --from-literal=PG_DSN="${PG_DSN}" \
             --namespace=fiap \
             --dry-run=client -o yaml | kubectl apply -f -
 
