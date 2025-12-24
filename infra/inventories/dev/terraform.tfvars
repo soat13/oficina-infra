@@ -50,7 +50,7 @@ attach_iam_policies = false
 create_iam_policies = false
 
 # RDS PostgreSQL Configuration
-rds_database_name = "postgres"
+rds_database_name = "oficina"
 
 # rds_master_username = "postgres"
 

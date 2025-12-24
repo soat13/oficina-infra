@@ -154,7 +154,7 @@ variable "create_iam_policies" {
 variable "rds_database_name" {
   description = "Name of the default database to create"
   type        = string
-  default     = "postgres"
+  default     = "oficina"
 }
 
 variable "rds_master_username" {

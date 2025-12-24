@@ -32,7 +32,7 @@ variable "kms_key_id" {
 variable "database_name" {
   description = "Name of the default database to create"
   type        = string
-  default     = "postgres"
+  default     = "oficina"
 }
 
 variable "master_username" {
