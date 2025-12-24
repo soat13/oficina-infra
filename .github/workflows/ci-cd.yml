@@ -216,10 +216,6 @@ jobs:
         run: |
           kubectl apply -f k8s/app/
 
-      - name: Wait for Deployment Rollout
-        run: |
-          kubectl rollout status deployment/oficina -n fiap
-
       - name: Get Service Load Balancer URL
         run: |
           kubectl wait --for=jsonpath='{.status.loadBalancer.ingress}' service/ext-lb -n fiap || true
