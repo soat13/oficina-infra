@@ -18,3 +18,4 @@ metadata:
   namespace: fiap
 data:
   MIGRATIONS_DIR: "scripts/db/migrations"
+  PORT: "8080"
