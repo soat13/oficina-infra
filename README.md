@@ -32,12 +32,12 @@ A solução foi desenvolvida seguindo as melhores práticas de DevOps, seguranç
 │  │   │  │ │ (Auto Scaling│ │   │       │   │ │ (Auto Scaling│ │  │           │  │
 │  │   │  │ │   Group)     │ │   │       │   │ │   Group)     │ │  │           │  │
 │  │   │  │ └──────────────┘ │   │       │   │ └──────────────┘ │  │           │  │
-│  │   │  │                  │   │       │   │                  │ │  │           │  │
-│  │   │  │ ┌──────────────┐ │   │       │   │                  │ │  │           │  │
-│  │   │  │ │     RDS      │ │   │       │   │                  │ │  │           │  │
-│  │   │  │ │  PostgreSQL  │ │   │       │   │                  │ │  │           │  │
-│  │   │  │ │              │ │   │       │   │                  │ │  │           │  │
-│  │   │  │ └──────────────┘ │   │       │   │ └──────────────┘ │  │           │  │
+│  │   │  │                  │   │       │   │                  │  │           │  │
+│  │   │  │ ┌──────────────┐ │   │       │   │                  │  │           │  │
+│  │   │  │ │     RDS      │ │   │       │   │                  │  │           │  │
+│  │   │  │ │  PostgreSQL  │ │   │       │   │                  │  │           │  │
+│  │   │  │ │              │ │   │       │   │                  │  │           │  │
+│  │   │  │ └──────────────┘ │   │       │   │                  │  │           │  │
 │  │   │  └──────────────────┘   │       │   └──────────────────┘  │           │  │
 │  │   └─────────────────────────┘       └─────────────────────────┘           │  │
 │  │                                                                           │  │
@@ -66,12 +66,12 @@ A solução foi desenvolvida seguindo as melhores práticas de DevOps, seguranç
 ┌─────────────────────────────────────────────────────────────────────────────────┐
 │                            GitHub Actions Pipeline                              │
 │                                                                                 │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐    ┌──────────────┐ │
-│  │   SonarCloud │───▶│  Terraform   │───▶│  Terraform   │───▶│  Kubernetes  │ │
-│  │     Scan     │    │     Plan     │    │     Apply    │    │    Deploy    │ │
-│  └──────────────┘    └──────────────┘    └──────────────┘    └──────────────┘ │
-│   • Security           • Validate           • Provisiona        • Namespace    │
-│   • Code Quality       • Format             • Infraestrutura    • Deployment   │
+│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐    ┌──────────────┐   │
+│  │   SonarCloud │───▶│  Terraform   │──▶│  Terraform   │──▶│  Kubernetes  │   │
+│  │     Scan     │    │     Plan     │    │     Apply    │    │    Deploy    │   │
+│  └──────────────┘    └──────────────┘    └──────────────┘    └──────────────┘   │
+│   • Security           • Validate           • Provisiona        • Namespace     │
+│   • Code Quality       • Format             • Infraestrutura    • Deployment    │
 └─────────────────────────────────────────────────────────────────────────────────┘
                                       │
                                       ▼
