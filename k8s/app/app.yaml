@@ -13,6 +13,7 @@ spec:
       labels:
         app: oficina
     spec:
+      automountServiceAccountToken: false
       terminationGracePeriodSeconds: 3
       containers:
         - image: 590183784559.dkr.ecr.us-east-1.amazonaws.com/oficina-api:latest
