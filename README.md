@@ -373,7 +373,7 @@ Deploy no Kubernetes:
   1. Configuração do kubeconfig
   2. Criação do namespace e recursos base
   3. Download dos outputs do Terraform
-  4. Criação/atualização do Secret com credenciais RDS
+  4. Criação/atualização de Secrets
   5. Deploy da aplicação (`kubectl apply -f k8s/app/`)
   6. Restart do deployment
   7. Aguarda LoadBalancer e exibe URL
