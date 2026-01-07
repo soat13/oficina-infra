@@ -313,19 +313,6 @@ A aplicação escala automaticamente baseada em CPU:
 - **Máximo**: 10 replicas
 - **Target**: 50% CPU
 
-### Node Autoscaling (Cluster Autoscaler)
-
-Para habilitar o Cluster Autoscaler:
-
-1. Deploy do Cluster Autoscaler no EKS
-2. Configurar IAM policies adequadas
-3. Ajustar min/max size do node group
-
-### Database Scaling
-
-- **Storage**: Auto-scaling de 20 GB até 100 GB
-- **Read Replicas**: Podem ser adicionadas para leitura
-- **Vertical Scaling**: Alterar `rds_instance_class` no tfvars
 
 ## CI/CD Pipeline
 
