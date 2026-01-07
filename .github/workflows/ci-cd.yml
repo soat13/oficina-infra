@@ -198,7 +198,9 @@ jobs:
 
       - name: Apply Namespace and Base Resources
         run: |
-          kubectl apply -f k8s/default/default.yaml
+          kubectl apply -f k8s/app/namespace.yaml
+          kubectl apply -f k8s/app/serviceaccount.yaml
+          kubectl apply -f k8s/app/configmap.yaml
 
       - name: Download Terraform Outputs
         uses: actions/download-artifact@v4
@@ -216,25 +218,15 @@ jobs:
           echo "port=${RDS_PORT}" >> $GITHUB_OUTPUT
           echo "database=${RDS_DATABASE}" >> $GITHUB_OUTPUT
 
-      - name: Create Kubernetes Secret
+      - name: Apply Kubernetes Secret
         env:
-          K8S_JWT_SECRET: ${{ secrets.K8S_JWT_SECRET }}
-          RDS_USERNAME: ${{ secrets.TF_RDS_MASTER_USERNAME }}
-          RDS_PASSWORD: ${{ secrets.TF_RDS_MASTER_PASSWORD }}
-          RDS_ENDPOINT: ${{ steps.rds_info.outputs.endpoint }}
-          RDS_PORT: ${{ steps.rds_info.outputs.port }}
-          RDS_DATABASE: ${{ steps.rds_info.outputs.database }}
+          JWT_SECRET: ${{ secrets.K8S_JWT_SECRET }}
+          POSTGRES_USER: ${{ secrets.TF_RDS_MASTER_USERNAME }}
+          POSTGRES_PASSWORD: ${{ secrets.TF_RDS_MASTER_PASSWORD }}
+          POSTGRES_DB: ${{ steps.rds_info.outputs.database }}
+          PG_DSN: postgres://${{ secrets.TF_RDS_MASTER_USERNAME }}:${{ secrets.TF_RDS_MASTER_PASSWORD }}@${{ steps.rds_info.outputs.endpoint }}:${{ steps.rds_info.outputs.port }}/${{ steps.rds_info.outputs.database }}
         run: |
-          PG_DSN="postgres://${RDS_USERNAME}:${RDS_PASSWORD}@${RDS_ENDPOINT}:${RDS_PORT}/${RDS_DATABASE}"
-          
-          kubectl create secret generic app-sc \
-            --from-literal=JWT_SECRET="${K8S_JWT_SECRET}" \
-            --from-literal=POSTGRES_PASSWORD="${RDS_PASSWORD}" \
-            --from-literal=POSTGRES_USER="${RDS_USERNAME}" \
-            --from-literal=POSTGRES_DB="${RDS_DATABASE}" \
-            --from-literal=PG_DSN="${PG_DSN}" \
-            --namespace=fiap \
-            --dry-run=client -o yaml | kubectl apply -f -
+          envsubst < k8s/app/secrets.yaml | kubectl apply -f -
 
       - name: Deploy Application
         run: |

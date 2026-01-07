@@ -241,12 +241,13 @@ fase-2-oficina/
 │   └── backend.tf                    # Backend S3
 │
 ├── k8s/                              # Manifestos Kubernetes
-│   ├── default/
-│   │   └── default.yaml              # Namespace, ServiceAccount, ConfigMap
 │   ├── app/
 │   │   ├── app.yaml                  # Deployment da aplicação
-│   │   ├── services.yaml             # LoadBalancer Service
-│   │   └── hpa.yaml                  # Horizontal Pod Autoscaler
+│   │   ├── configmap.yaml            # ConfigMap
+│   │   ├── hpa.yaml                  # Horizontal Pod Autoscaler
+│   │   ├── namespace.yaml            # Namespace
+│   │   ├── serviceaccount.yaml       # ServiceAccount
+│   │   └── services.yaml             # LoadBalancer Service
 │   └── scripts/
 │       └── migrations/               # Migração do banco de dados
 │
