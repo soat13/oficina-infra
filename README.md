@@ -246,6 +246,7 @@ fase-2-oficina/
 │   │   ├── configmap.yaml            # ConfigMap
 │   │   ├── hpa.yaml                  # Horizontal Pod Autoscaler
 │   │   ├── namespace.yaml            # Namespace
+│   │   ├── secrets.yaml              # Secrets
 │   │   ├── serviceaccount.yaml       # ServiceAccount
 │   │   └── services.yaml             # LoadBalancer Service
 │   └── scripts/
