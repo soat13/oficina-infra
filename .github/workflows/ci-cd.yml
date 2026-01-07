@@ -230,7 +230,9 @@ jobs:
 
       - name: Deploy Application
         run: |
-          kubectl apply -f k8s/app/
+          kubectl apply -f k8s/app/app.yaml
+          kubectl apply -f k8s/app/services.yaml
+          kubectl apply -f k8s/app/hpa.yaml
 
       - name: Wait for Deployment Rollout
         run: |
