@@ -2,7 +2,7 @@
 
 ## Visão Geral
 
-Este projeto implementa uma arquitetura completa e moderna na AWS utilizando **Terraform** para provisionamento de infraestrutura como código (IaC), **Amazon EKS** (Elastic Kubernetes Service) para orquestração de containers, **RDS PostgreSQL** como banco de dados gerenciado, e um pipeline **CI/CD** totalmente automatizado com **GitHub Actions**.
+Este projeto implementa uma arquitetura completa e moderna na AWS utilizando **Terraform** para provisionamento de infraestrutura como código (IaC), **Amazon EKS** (Elastic Kubernetes Service) para orquestração de containers, e um pipeline **CI/CD** totalmente automatizado com **GitHub Actions**.
 
 A solução foi desenvolvida seguindo as melhores práticas de DevOps, segurança e escalabilidade, com análise contínua de código via **SonarCloud** e deploy automatizado em múltiplos ambientes (dev, hom, prod).
 
@@ -34,7 +34,6 @@ Provê toda a infraestrutura de rede isolada:
 #### 2. **KMS Module** (`modules/kms`)
 Gerencia criptografia de dados sensíveis:
 - Chave KMS para criptografia de **secrets do EKS**
-- Chave KMS para criptografia do **RDS at-rest**
 - Alias `{cluster-name}-eks` para fácil identificação
 - Janela de deleção configurável (padrão: 30 dias)
 
@@ -64,16 +63,7 @@ Worker nodes gerenciados:
 - **Labels Kubernetes** customizados para workload placement
 - SSH opcional via EC2 Key Pair
 
-#### 6. **RDS PostgreSQL Module** (`modules/rds-postgres`)
-Banco de dados gerenciado:
-- **Engine**: PostgreSQL 16.10
-- **Instance**: db.t3.micro (single-AZ para dev)
-- **Storage**: 20 GB gp3 com auto-scaling até 100 GB
-- **Backup**: 5 dias de retenção automática
-- **Criptografia**: KMS at-rest e SSL em trânsito
-- **Subnet privada**: Sem acesso público direto
-- **CloudWatch Logs**: Exportação automática de logs do PostgreSQL
-- **Manutenção**: Segunda-feira 04:00-05:00 UTC
+
 
 ### Configuração por Ambiente
 
@@ -117,7 +107,7 @@ fase-2-oficina/
 │
 ├── .github/                          # Automação e CI/CD
 │   └── workflows/
-│       └── ci-cd.yml                 # Pipeline: SonarCloud → Terraform → K8s
+│       └── ci-cd.yml                 # Pipeline: SonarCloud → Terraform
 │
 ├── infra/                            # Infraestrutura como Código (Terraform)
 │   ├── modules/                      # Módulos reutilizáveis
@@ -125,8 +115,7 @@ fase-2-oficina/
 │   │   ├── kms/                      # Chaves de criptografia
 │   │   ├── iam/                      # Roles e políticas IAM
 │   │   ├── eks-cluster/              # Cluster Kubernetes
-│   │   ├── node-group/               # Worker Nodes
-│   │   └── rds-postgres/             # Banco de dados PostgreSQL
+│   │   └── node-group/               # Worker Nodes
 │   │
 │   ├── inventories/                  # Configurações por ambiente
 │   │   ├── dev/                      # Desenvolvimento
@@ -139,79 +128,8 @@ fase-2-oficina/
 │   ├── provider.tf                   # Provider AWS
 │   └── backend.tf                    # Backend S3
 │
-├── k8s/                              # Manifestos Kubernetes
-│   ├── app/
-│   │   ├── app.yaml                  # Deployment da aplicação
-│   │   ├── configmap.yaml            # ConfigMap
-│   │   ├── hpa.yaml                  # Horizontal Pod Autoscaler
-│   │   ├── namespace.yaml            # Namespace
-│   │   ├── secrets.yaml              # Secrets
-│   │   ├── serviceaccount.yaml       # ServiceAccount
-│   │   └── services.yaml             # LoadBalancer Service
-│   └── scripts/
-│       └── migrations/               # Migração do banco de dados
-│
 └── sonar-project.properties          # Configuração do SonarCloud
 ```
-
-## Kubernetes (K8S)
-
-### Recursos Kubernetes
-
-#### **Namespace: `fiap`**
-Isola os recursos da aplicação em um namespace dedicado.
-
-#### **ConfigMap: `app-config`**
-Configurações não-sensíveis da aplicação:
-```yaml
-MIGRATIONS_DIR: "scripts/db/migrations"
-PORT: "8080"
-```
-
-#### **Secret: `app-sc`**
-Credenciais sensíveis (criadas via CI/CD):
-- `JWT_SECRET`: Secret para tokens JWT
-- `POSTGRES_USER`: Usuário do banco
-- `POSTGRES_PASSWORD`: Senha do banco
-- `POSTGRES_DB`: Nome do database
-- `PG_DSN`: Connection string completa do PostgreSQL
-
-#### **Deployment: `oficina`**
-Especificações do deployment:
-- **Replicas**: 2 (mínimo, escalável via HPA)
-- **Image**: Utiliza imagem gerada da camada de aplicação que está no ECR
-- **Port**: 8080
-
-#### **Service: `ext-lb`**
-LoadBalancer para expor a aplicação:
-- **Type**: LoadBalancer (AWS ELB)
-- **Port**: 3000 (externo) → 8080 (container)
-- **Protocol**: TCP
-- **Selector**: `app: oficina`
-
-#### **HPA (Horizontal Pod Autoscaler)**
-Auto-scaling baseado em métricas:
-- **Min Replicas**: 1
-- **Max Replicas**: 10
-- **Target CPU**: 50% de utilização
-- **Scale Up**: Rápido (15s, até 4 pods por vez)
-- **Scale Down**: Gradual (30s de estabilização)
-
-### Acesso à Aplicação
-
-Após o deploy, obtenha a URL do LoadBalancer através da pipe ou pelo Kubernetes
-
-A aplicação estará disponível em: `http://<LOAD_BALANCER_DNS>:3000`
-
-## Escalabilidade
-
-### Horizontal Pod Autoscaling (HPA)
-
-A aplicação escala automaticamente baseada em CPU:
-- **Mínimo**: 1 replica
-- **Máximo**: 10 replicas
-- **Target**: 50% CPU
-
 
 ## CI/CD Pipeline
 
@@ -250,18 +168,3 @@ Aplicação da infraestrutura:
 - **Passos**:
   1. Download do plano gerado
   2. `terraform apply` (aplicação automática)
-  3. Captura de outputs (cluster name, endpoint, RDS info)
-  4. Upload dos outputs como artefato
-
-#### **4. k8s-deploy**
-Deploy no Kubernetes:
-- **Dependência**: terraform-apply
-- **Condição**: Apenas na branch `main`
-- **Passos**:
-  1. Configuração do kubeconfig
-  2. Criação do namespace e recursos base
-  3. Download dos outputs do Terraform
-  4. Criação/atualização de Secrets
-  5. Deploy da aplicação (`kubectl apply -f k8s/app/`)
-  6. Restart do deployment
-  7. Aguarda LoadBalancer e exibe URL
