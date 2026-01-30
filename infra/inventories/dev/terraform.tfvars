@@ -41,9 +41,9 @@ node_labels = {
   Workload    = "general"
 }
 
-existing_cluster_role_arn = "arn:aws:iam::711290133650:role/LabRole"
+existing_cluster_role_arn = "arn:aws:iam::910734739355:role/LabRole"
 
-existing_node_role_arn = "arn:aws:iam::711290133650:role/LabRole"
+existing_node_role_arn = "arn:aws:iam::910734739355:role/LabRole"
 
 attach_iam_policies = false
 
