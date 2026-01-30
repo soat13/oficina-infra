@@ -3,7 +3,7 @@ name: Infrastructure CI/CD Pipeline
 on:
   push:
     branches:
-      - main
+      - chore/base-structure # TODO: Change to main
   pull_request:
     branches:
       - '*'
@@ -77,9 +77,6 @@ jobs:
 
       - name: Terraform Plan
         id: plan
-        env:
-          TF_VAR_rds_master_password: ${{ secrets.TF_RDS_MASTER_PASSWORD }}
-          TF_VAR_rds_master_username: ${{ secrets.TF_RDS_MASTER_USERNAME }}
         run: |
           terraform plan \
             -var-file=inventories/${{ env.ENVIRONMENT }}/terraform.tfvars \
@@ -102,12 +99,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    if: github.ref == 'refs/heads/main'
-    environment:
-      name: ${{ github.event.inputs.environment || 'dev' }}
-    outputs:
-      eks_cluster_name: ${{ steps.output.outputs.eks_cluster_name }}
-      eks_cluster_endpoint: ${{ steps.output.outputs.eks_cluster_endpoint }}
+    # TODO: Remove this comment when the branch is merged to main
+    # if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -138,9 +131,6 @@ jobs:
 
       - name: Terraform Apply
         id: apply
-        env:
-          TF_VAR_rds_master_password: ${{ secrets.TF_RDS_MASTER_PASSWORD }}
-          TF_VAR_rds_master_username: ${{ secrets.TF_RDS_MASTER_USERNAME }}
         run: |
           terraform apply \
             -auto-approve tfplan
