@@ -3,7 +3,7 @@ name: Infrastructure CI/CD Pipeline
 on:
   push:
     branches:
-      - chore/base-structure # TODO: Change to main
+      - main
   pull_request:
     branches:
       - '*'
@@ -23,6 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -43,6 +44,7 @@ jobs:
       contents: read
     outputs:
       tfplan_exitcode: ${{ steps.plan.outputs.exitcode }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -99,8 +101,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    # TODO: Remove this comment when the branch is merged to main
-    # if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
