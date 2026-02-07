@@ -7,8 +7,6 @@ on:
   pull_request:
     branches:
       - '*'
-  repository_dispatch:
-    types: [deploy-application]    
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -25,6 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -45,6 +44,7 @@ jobs:
       contents: read
     outputs:
       tfplan_exitcode: ${{ steps.plan.outputs.exitcode }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -79,9 +79,6 @@ jobs:
 
       - name: Terraform Plan
         id: plan
-        env:
-          TF_VAR_rds_master_password: ${{ secrets.TF_RDS_MASTER_PASSWORD }}
-          TF_VAR_rds_master_username: ${{ secrets.TF_RDS_MASTER_USERNAME }}
         run: |
           terraform plan \
             -var-file=inventories/${{ env.ENVIRONMENT }}/terraform.tfvars \
@@ -105,11 +102,7 @@ jobs:
     permissions:
       contents: read
     if: github.ref == 'refs/heads/main'
-    environment:
-      name: ${{ github.event.inputs.environment || 'dev' }}
-    outputs:
-      eks_cluster_name: ${{ steps.output.outputs.eks_cluster_name }}
-      eks_cluster_endpoint: ${{ steps.output.outputs.eks_cluster_endpoint }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -140,108 +133,8 @@ jobs:
 
       - name: Terraform Apply
         id: apply
-        env:
-          TF_VAR_rds_master_password: ${{ secrets.TF_RDS_MASTER_PASSWORD }}
-          TF_VAR_rds_master_username: ${{ secrets.TF_RDS_MASTER_USERNAME }}
         run: |
           terraform apply \
             -auto-approve tfplan
         working-directory: ./infra
-
-      - name: Terraform Output
-        id: output
-        run: |
-          terraform output
-          CLUSTER_NAME=$(terraform output -raw cluster_name)
-          CLUSTER_ENDPOINT=$(terraform output -raw cluster_endpoint)
-          RDS_ENDPOINT=$(terraform output -raw rds_endpoint)
-          echo "eks_cluster_name=${CLUSTER_NAME}" >> $GITHUB_OUTPUT
-          echo "eks_cluster_endpoint=${CLUSTER_ENDPOINT}" >> $GITHUB_OUTPUT
-          echo "rds_endpoint=${RDS_ENDPOINT}" >> $GITHUB_OUTPUT
-        working-directory: ./infra
-
-      - name: Save Terraform Outputs
-        run: |
-          terraform output -json > terraform-outputs.json
-        working-directory: ./infra
-
-      - name: Upload Terraform Outputs
-        uses: actions/upload-artifact@v6
-        with:
-          name: terraform-outputs-${{ env.ENVIRONMENT }}
-          path: infra/terraform-outputs.json
-          retention-days: 30
-
-  k8s-deploy:
-    name: Deploy to Kubernetes
-    needs: terraform-apply
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@56d6a583f00f6bad6d19d91d53a7bc3b8143d0e9
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Update Kubeconfig
-        run: |
-          CLUSTER_NAME="${{ needs.terraform-apply.outputs.eks_cluster_name }}"
-          aws eks update-kubeconfig --name "${CLUSTER_NAME}" --region ${{ env.AWS_REGION }}
-
-      - name: Apply Namespace and Base Resources
-        run: |
-          kubectl apply -f k8s/app/namespace.yaml
-          kubectl apply -f k8s/app/serviceaccount.yaml
-          kubectl apply -f k8s/app/configmap.yaml
-
-      - name: Download Terraform Outputs
-        uses: actions/download-artifact@v4
-        with:
-          name: terraform-outputs-${{ env.ENVIRONMENT }}
-          path: ./terraform-outputs/
-
-      - name: Extract RDS Information
-        id: rds_info
-        run: |
-          RDS_ENDPOINT=$(jq -r '.rds_address.value' ./terraform-outputs/terraform-outputs.json)
-          RDS_PORT=$(jq -r '.rds_port.value' ./terraform-outputs/terraform-outputs.json)
-          RDS_DATABASE=$(jq -r '.rds_database_name.value' ./terraform-outputs/terraform-outputs.json)
-          echo "endpoint=${RDS_ENDPOINT}" >> $GITHUB_OUTPUT
-          echo "port=${RDS_PORT}" >> $GITHUB_OUTPUT
-          echo "database=${RDS_DATABASE}" >> $GITHUB_OUTPUT
-
-      - name: Apply Kubernetes Secret
-        env:
-          JWT_SECRET: ${{ secrets.K8S_JWT_SECRET }}
-          POSTGRES_USER: ${{ secrets.TF_RDS_MASTER_USERNAME }}
-          POSTGRES_PASSWORD: ${{ secrets.TF_RDS_MASTER_PASSWORD }}
-          POSTGRES_DB: ${{ steps.rds_info.outputs.database }}
-          PG_DSN: postgres://${{ secrets.TF_RDS_MASTER_USERNAME }}:${{ secrets.TF_RDS_MASTER_PASSWORD }}@${{ steps.rds_info.outputs.endpoint }}:${{ steps.rds_info.outputs.port }}/${{ steps.rds_info.outputs.database }}
-        run: |
-          envsubst < k8s/app/secrets.yaml | kubectl apply -f -
-
-      - name: Deploy Application
-        run: |
-          kubectl apply -f k8s/app/metric-server.yaml
-          kubectl apply -f k8s/app/app.yaml
-          kubectl apply -f k8s/app/services.yaml
-          kubectl apply -f k8s/app/hpa.yaml
-
-      - name: Wait for Deployment Rollout
-        run: |
-          kubectl rollout restart deployment/oficina -n fiap
-
-      - name: Get Service Load Balancer URL
-        run: |
-          kubectl wait --for=jsonpath='{.status.loadBalancer.ingress}' service/ext-lb -n fiap || true
-          echo "Service URL:"
-          kubectl get svc ext-lb -n fiap -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
 
