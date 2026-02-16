@@ -20,9 +20,5 @@ output "node_group_capacity_type" {
 
 output "autoscaling_group_names" {
   description = "List of AutoScaling Group names"
-  value       = flatten([
-    for rg in aws_eks_node_group.main.resources : [
-      for asg in rg.autoscaling_groups : asg.name
-    ]
-  ])
+  value       = flatten([for rg in aws_eks_node_group.main.resources : [for asg in rg.autoscaling_groups : asg.name]])
 }

@@ -105,7 +105,7 @@ resource "aws_autoscaling_attachment" "asg_attachment" {
 module "api_gateway" {
   source = "./modules/api-gateway"
 
-  name       = "${var.cluster_name}-api"
+  name              = "${var.cluster_name}-api"
   stage_name        = "dev"
   tags              = var.tags
   load_balancer_uri = module.alb.dns_name
