@@ -18,3 +18,11 @@ output "node_group_capacity_type" {
   value       = aws_eks_node_group.main.capacity_type
 }
 
+output "autoscaling_group_names" {
+  description = "List of AutoScaling Group names"
+  value       = flatten([
+    for rg in aws_eks_node_group.main.resources : [
+      for asg in rg.autoscaling_groups : asg.name
+    ]
+  ])
+}

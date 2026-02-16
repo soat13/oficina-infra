@@ -63,6 +63,20 @@ Worker nodes gerenciados:
 - **Labels Kubernetes** customizados para workload placement
 - SSH opcional via EC2 Key Pair
 
+#### 6. **ALB Module** (`modules/alb`)
+Application Load Balancer para distribuição de tráfego:
+- **Load Balancer**: Internet-facing, ouvindo na porta 80
+- **Target Group**: Redirecionamento para NodePort (30007) nos worker nodes
+- **Segurança**: Security Group permitindo acesso HTTP externo
+- **Regras de Listener**: Bloqueio de acesso direto, permitindo apenas requisições com o header `X-Service-Token` correto
+
+#### 7. **API Gateway Module** (`modules/api-gateway`)
+Ponto de entrada único e seguro para a aplicação:
+- **REST API**: Configurado via OpenAPI (`oficina.yaml`)
+- **Integração**: HTTP Proxy com o ALB
+- **Segurança**: Injeção automática do secret `X-Service-Token` em todas as requisições para o ALB
+- **Deploy**: Stages automatizados (dev, hom, prod)
+
 
 
 ### Configuração por Ambiente
@@ -115,7 +129,9 @@ fase-2-oficina/
 │   │   ├── kms/                      # Chaves de criptografia
 │   │   ├── iam/                      # Roles e políticas IAM
 │   │   ├── eks-cluster/              # Cluster Kubernetes
-│   │   └── node-group/               # Worker Nodes
+│   │   ├── node-group/               # Worker Nodes
+│   │   ├── alb/                      # Application Load Balancer
+│   │   └── api-gateway/              # API Gateway REST API
 │   │
 │   ├── inventories/                  # Configurações por ambiente
 │   │   ├── dev/                      # Desenvolvimento

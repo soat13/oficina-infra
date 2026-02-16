@@ -77,3 +77,37 @@ module "node_group" {
     module.eks_cluster
   ]
 }
+
+# Generate Shared Secret for ALB-API Gateway Authentication
+resource "random_password" "service_token" {
+  length  = 32
+  special = false
+}
+
+# ALB Module
+module "alb" {
+  source = "./modules/alb"
+
+  project_name      = var.cluster_name
+  vpc_id            = module.vpc.vpc_id
+  public_subnet_ids = module.vpc.public_subnet_ids
+  tags              = var.tags
+  service_token     = random_password.service_token.result
+}
+
+# Attach Node Group ASG to ALB Target Group
+resource "aws_autoscaling_attachment" "asg_attachment" {
+  autoscaling_group_name = module.node_group.autoscaling_group_names[0]
+  lb_target_group_arn    = module.alb.target_group_arn
+}
+
+# API Gateway Module
+module "api_gateway" {
+  source = "./modules/api-gateway"
+
+  name       = "${var.cluster_name}-api"
+  stage_name        = "dev"
+  tags              = var.tags
+  load_balancer_uri = module.alb.dns_name
+  service_token     = random_password.service_token.result
+}
