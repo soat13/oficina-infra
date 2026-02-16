@@ -102,3 +102,8 @@ output "configure_kubectl" {
   description = "Command to configure kubectl for the EKS cluster"
   value       = "aws eks update-kubeconfig --region ${var.aws_region} --name ${module.eks_cluster.cluster_name}"
 }
+
+output "api_gateway_endpoint" {
+  description = "URL to invoke the API Gateway"
+  value       = module.api_gateway.invoke_url
+}
