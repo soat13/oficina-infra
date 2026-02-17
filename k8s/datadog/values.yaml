@@ -1,0 +1,17 @@
+targetSystem: "linux"
+datadog:
+  site: "datadoghq.com"
+  clusterName: "fiap-eks-cluster"
+  apiKeyExistingSecret: "datadog-secret"
+  orchestratorExplorer:
+    enabled: true
+  apm:
+    portEnabled: true
+  logs:
+    enabled: true
+    containerCollectAll: true
+clusterAgent:
+  replicas: 2
+  enabled: true
+  pdb:
+    create: true
