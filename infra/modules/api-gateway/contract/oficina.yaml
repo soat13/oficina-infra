@@ -81,6 +81,52 @@ paths:
         type: "http_proxy"
         requestParameters:
           integration.request.header.X-Service-Token: "'${service_token}'"
+  /docs:
+    get:
+      tags: [Docs]
+      summary: Documentação da API
+      description: Retorna a documentação da API.
+      security: []
+      responses:
+        "200":
+          description: Documentação da API.
+          content:
+            text/html:
+              schema:
+                $ref: "#/components/schemas/DocumentationResponse"
+      x-amazon-apigateway-integration:
+        uri: "${load_balancer_uri}/docs"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "GET"
+        type: "http_proxy"
+        requestParameters:
+          integration.request.header.X-Service-Token: "'${service_token}'"
+  /openapi.yaml:
+    get:
+      tags: [Docs]
+      summary: Especificação OpenAPI
+      description: Retorna o arquivo de especificação OpenAPI em formato YAML.
+      security: []
+      responses:
+        "200":
+          description: Especificação OpenAPI em YAML.
+          content:
+            application/x-yaml:
+              schema:
+                type: string
+      x-amazon-apigateway-integration:
+        uri: "${load_balancer_uri}/openapi.yaml"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "GET"
+        type: "http_proxy"
+        requestParameters:
+          integration.request.header.X-Service-Token: "'${service_token}'"
   /admin/services:
     get:
       tags: [Services]

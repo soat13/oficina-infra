@@ -2,7 +2,7 @@ resource "aws_api_gateway_rest_api" "api" {
   name        = var.name
   description = "API Gateway for ${var.name}"
 
-  body = templatefile("${path.module}/contrato/oficina.yaml", {
+  body = templatefile("${path.module}/contract/oficina.yaml", {
     load_balancer_uri = var.load_balancer_uri
     service_token     = var.service_token
   })
@@ -19,7 +19,7 @@ resource "aws_api_gateway_deployment" "api" {
 
   triggers = {
     redeployment = sha1(jsonencode([
-      templatefile("${path.module}/contrato/oficina.yaml", {
+      templatefile("${path.module}/contract/oficina.yaml", {
         load_balancer_uri = var.load_balancer_uri
         service_token     = var.service_token
       }),
