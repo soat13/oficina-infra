@@ -160,4 +160,9 @@ variable "tags" {
   }
 }
 
+variable "auth_lambda_invoke_arn" {
+  description = "The Invoke ARN of the Identity Lambda required by API Gateway"
+  type        = string
+}
+
 

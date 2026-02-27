@@ -41,9 +41,9 @@ node_labels = {
   Workload    = "general"
 }
 
-existing_cluster_role_arn = "arn:aws:iam::910734739355:role/LabRole"
+existing_cluster_role_arn = "arn:aws:iam::991677575887:role/LabRole"
 
-existing_node_role_arn = "arn:aws:iam::910734739355:role/LabRole"
+existing_node_role_arn = "arn:aws:iam::991677575887:role/LabRole"
 
 attach_iam_policies = false
 
@@ -54,3 +54,6 @@ tags = {
   ManagedBy   = "terraform"
   Project     = "oficina"
 }
+
+auth_lambda_invoke_arn = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:991677575887:function:IdentityFunction/invocations"
+

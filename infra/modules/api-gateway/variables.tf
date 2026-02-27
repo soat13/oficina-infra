@@ -25,3 +25,8 @@ variable "service_token" {
   type        = string
   sensitive   = true
 }
+
+variable "auth_lambda_invoke_arn" {
+  description = "Invoke ARN for the Auth Lambda function"
+  type        = string
+}
