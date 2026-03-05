@@ -147,6 +147,17 @@ fase-2-oficina/
 └── sonar-project.properties          # Configuração do SonarCloud
 ```
 
+## Observabilidade (Datadog)
+
+O cluster EKS é monitorado pelo **Datadog Agent** instalado via Helm chart (`k8s/datadog/values.yaml`). A configuração habilita:
+
+- **APM** — Coleta de traces das aplicações no cluster
+- **Logs** — Agregação automática de logs de todos os containers
+- **Orchestrator Explorer** — Visibilidade sobre pods, deployments e demais recursos Kubernetes
+- **Cluster Agent** — Réplicas com PodDisruptionBudget para alta disponibilidade
+
+A API key é gerenciada via Kubernetes Secret (`datadog-secret`), referenciada no values.
+
 ## CI/CD Pipeline
 
 ### Pipeline GitHub Actions
@@ -184,3 +195,14 @@ Aplicação da infraestrutura:
 - **Passos**:
   1. Download do plano gerado
   2. `terraform apply` (aplicação automática)
+  3. Extração dos outputs (nome do cluster)
+
+#### **4. datadog-deploy**
+Deploy do Datadog Agent no cluster EKS:
+- **Dependência**: terraform-apply
+- **Condição**: Apenas na branch `main`
+- **Passos**:
+  1. Configuração de credenciais AWS e kubeconfig
+  2. Instalação do Helm e adição do repositório Datadog
+  3. Criação do namespace `datadog` e Secret com a API key
+  4. `helm upgrade --install` do agent usando `k8s/datadog/values.yaml`
