@@ -165,4 +165,9 @@ variable "auth_lambda_invoke_arn" {
   type        = string
 }
 
+variable "sqs_queues" {
+  description = "List of SQS queues to be created"
+  type        = list(string)
+  default     = []
+}
 
