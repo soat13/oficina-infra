@@ -39,7 +39,7 @@ resource "aws_lb" "main" {
 
 resource "aws_lb_target_group" "app" {
   name     = "${var.project_name}-tg"
-  port     = 30007
+  port     = var.node_port
   protocol = "HTTP"
   vpc_id   = var.vpc_id
 
@@ -52,6 +52,26 @@ resource "aws_lb_target_group" "app" {
     timeout             = 5
     interval            = 30
     matcher             = "200-499" # Accept a wide range for now to avoid premature failure
+  }
+
+  tags = var.tags
+}
+
+resource "aws_lb_target_group" "auth" {
+  name     = "${var.project_name}-auth-tg"
+  port     = var.auth_node_port
+  protocol = "HTTP"
+  vpc_id   = var.vpc_id
+
+  health_check {
+    path                = "/health" # Assuming auth also implements /health
+    port                = "traffic-port"
+    protocol            = "HTTP"
+    healthy_threshold   = 3
+    unhealthy_threshold = 3
+    timeout             = 5
+    interval            = 30
+    matcher             = "200-499"
   }
 
   tags = var.tags
@@ -80,6 +100,29 @@ resource "aws_lb_listener_rule" "api_access" {
   action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.app.arn
+  }
+
+  condition {
+    http_header {
+      http_header_name = "X-Service-Token"
+      values           = [var.service_token]
+    }
+  }
+}
+
+resource "aws_lb_listener_rule" "auth_access" {
+  listener_arn = aws_lb_listener.http.arn
+  priority     = 90
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.auth.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/auth/*"]
+    }
   }
 
   condition {

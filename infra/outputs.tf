@@ -115,3 +115,13 @@ output "sqs_base_url" {
     module.sqs_queues[local.sqs_queue_keys[0]].queue_name
   ) : ""
 }
+
+output "dynamodb_table_arns" {
+  description = "Map of DynamoDB table ARNs"
+  value       = { for k, v in module.dynamodb_tables : k => v.arn }
+}
+
+output "dynamodb_table_ids" {
+  description = "Map of DynamoDB table IDs"
+  value       = { for k, v in module.dynamodb_tables : k => v.id }
+}

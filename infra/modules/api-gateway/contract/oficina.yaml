@@ -72,13 +72,15 @@ paths:
         "422":
           $ref: "#/components/responses/UnprocessableEntityResponse"
       x-amazon-apigateway-integration:
-        uri: "${auth_lambda_invoke_arn}"
+        uri: "${load_balancer_uri}/auth/login"
         responses:
           default:
             statusCode: "200"
         passthroughBehavior: "when_no_match"
         httpMethod: "POST"
-        type: "aws_proxy"
+        type: "http_proxy"
+        requestParameters:
+          integration.request.header.X-Service-Token: "'${service_token}'"
   /admin/services:
     get:
       tags: [Services]
@@ -1880,6 +1882,11 @@ components:
       type: apiKey
       name: Authorization
       in: header
+      x-amazon-apigateway-authtype: custom
+      x-amazon-apigateway-authorizer:
+        type: token
+        authorizerUri: "${auth_lambda_invoke_arn}"
+        authorizerResultTtlInSeconds: 300
   parameters:
     LimitParam:
       name: limit
