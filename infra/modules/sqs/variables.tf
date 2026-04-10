@@ -3,7 +3,6 @@ variable "name" {
   type        = string
 }
 
-
 variable "delay_seconds" {
   description = "The time in seconds that the delivery of all messages in the queue will be delayed"
   type        = number

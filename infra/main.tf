@@ -116,8 +116,8 @@ module "sqs_queues" {
   source   = "./modules/sqs"
   for_each = toset(var.sqs_queues)
 
-  name       = each.key
-  create_dlq = true
+  name         = each.key
+  create_dlq   = true
 
   tags = var.tags
 }
