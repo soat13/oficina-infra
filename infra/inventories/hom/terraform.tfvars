@@ -51,6 +51,19 @@ attach_iam_policies = false
 
 create_iam_policies = false
 
+sqs_queues = [
+  "repairorder-diagnostics-finished",
+  "repairorder-canceled",
+  "repairorder-finished",
+  "estimate-created",
+  "estimate-approved",
+  "estimate-rejected",
+  "product-stock-reduce-confirmed",
+  "product-stock-insufficient-detected",
+  "payment-confirmed",
+  "payment-failed"
+]
+
 tags = {
   Environment = "hom"
   ManagedBy   = "terraform"

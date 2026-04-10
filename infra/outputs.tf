@@ -107,3 +107,17 @@ output "api_gateway_endpoint" {
   description = "URL to invoke the API Gateway"
   value       = module.api_gateway.invoke_url
 }
+
+output "sqs_base_url" {
+  description = "Base URL for SQS queues"
+  value       = local.sqs_base_url
+}
+
+locals {
+  first_queue_key = tolist(toset(var.sqs_queues))[0]
+
+  sqs_base_url = trimsuffix(
+    module.sqs_queues[local.first_queue_key].queue_id,
+    local.first_queue_key
+  )
+}

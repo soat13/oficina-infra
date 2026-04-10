@@ -51,12 +51,6 @@ attach_iam_policies = false
 
 create_iam_policies = false
 
-tags = {
-  Environment = "dev"
-  ManagedBy   = "terraform"
-  Project     = "oficina"
-}
-
 sqs_queues = [
   "repairorder-diagnostics-finished",
   "repairorder-canceled",
@@ -69,3 +63,9 @@ sqs_queues = [
   "payment-confirmed",
   "payment-failed"
 ]
+
+tags = {
+  Environment = "dev"
+  ManagedBy   = "terraform"
+  Project     = "oficina"
+}
