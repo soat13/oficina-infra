@@ -4,7 +4,7 @@ resource "aws_launch_template" "node_group" {
 
   network_interfaces {
     associate_public_ip_address = false
-    security_groups             = [aws_security_group.node_group.id]
+    security_groups             = [var.node_security_group_id]
   }
 
   metadata_options {

@@ -67,6 +67,7 @@ module "node_group" {
   max_size                             = var.node_max_size
   min_size                             = var.node_min_size
   max_unavailable                      = var.node_max_unavailable
+  node_security_group_id               = module.eks_cluster.node_security_group_id
   ssh_key                              = var.node_ssh_key
   remote_access_source_security_groups = var.node_remote_access_source_security_groups
   labels                               = var.node_labels
