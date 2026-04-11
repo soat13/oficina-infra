@@ -84,6 +84,11 @@ variable "labels" {
   default     = {}
 }
 
+variable "node_security_group_id" {
+  description = "Security group ID to attach to the node group network interfaces"
+  type        = string
+}
+
 variable "imds_hop_limit" {
   description = "The desired HTTP PUT response hop limit for instance metadata requests (IMDSv2). Use 1 for EC2 instances only, 2+ for containers."
   type        = number
