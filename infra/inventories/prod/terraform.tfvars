@@ -60,8 +60,7 @@ sqs_queues = [
   "estimate-rejected",
   "product-stock-reduce-confirmed",
   "product-stock-insufficient-detected",
-  "payment-confirmed",
-  "payment-failed"
+  "payment-status-changed"
 ]
 
 tags = {
