@@ -1,3 +1,33 @@
+# Launch Template for IMDSv2
+resource "aws_launch_template" "node_group" {
+  name_prefix = "${var.node_group_name}-"
+
+  network_interfaces {
+    associate_public_ip_address = false
+    security_groups             = [aws_security_group.node_group.id]
+  }
+
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = var.imds_hop_limit
+  }
+
+  block_device_mappings {
+    device_name = "/dev/xvda"
+
+    ebs {
+      volume_size           = var.disk_size
+      volume_type           = "gp3"
+      delete_on_termination = true
+    }
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
 # EKS Node Group
 resource "aws_eks_node_group" "main" {
   cluster_name    = var.cluster_name
@@ -7,7 +37,11 @@ resource "aws_eks_node_group" "main" {
   instance_types  = var.instance_types
   ami_type        = var.ami_type
   capacity_type   = var.capacity_type
-  disk_size       = var.disk_size
+
+  launch_template {
+    id      = aws_launch_template.node_group.id
+    version = aws_launch_template.node_group.latest_version
+  }
 
   scaling_config {
     desired_size = var.desired_size
