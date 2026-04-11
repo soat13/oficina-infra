@@ -45,7 +45,7 @@ variable "disk_size" {
 variable "desired_size" {
   description = "Desired number of nodes in the node group"
   type        = number
-  default     = 2
+  default     = 1
 }
 
 variable "max_size" {
@@ -82,6 +82,12 @@ variable "labels" {
   description = "Key-value map of Kubernetes labels to apply to nodes"
   type        = map(string)
   default     = {}
+}
+
+variable "imds_hop_limit" {
+  description = "The desired HTTP PUT response hop limit for instance metadata requests (IMDSv2). Use 1 for EC2 instances only, 2+ for containers."
+  type        = number
+  default     = 10
 }
 
 variable "tags" {
