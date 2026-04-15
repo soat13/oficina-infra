@@ -12,194 +12,41 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
-env:
-  AWS_REGION: us-east-1
-  TF_VERSION: 1.14.2
-  ENVIRONMENT: ${{ github.event.inputs.environment || 'dev' }}
-
 jobs:
   sonar-scan:
-    name: SonarCloud Security Scan
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    uses: ./.github/workflows/sonar-scan.yml
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   terraform-plan:
-    name: Terraform Plan
     needs: sonar-scan
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    outputs:
-      tfplan_exitcode: ${{ steps.plan.outputs.exitcode }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
-        with: 
-          terraform_version: ${{ env.TF_VERSION }}
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@56d6a583f00f6bad6d19d91d53a7bc3b8143d0e9
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Terraform Format Check
-        id: fmt
-        run: terraform fmt -check -recursive
-        working-directory: ./infra
-
-      - name: Terraform Init
-        id: init
-        run: terraform init
-        working-directory: ./infra
-
-      - name: Terraform Validate
-        id: validate
-        run: terraform validate -no-color
-        working-directory: ./infra
-
-      - name: Terraform Plan
-        id: plan
-        run: |
-          terraform plan \
-            -var-file=inventories/${{ env.ENVIRONMENT }}/terraform.tfvars \
-            -out=tfplan \
-            -no-color \
-            -detailed-exitcode || echo "exitcode=$?" >> $GITHUB_OUTPUT
-        working-directory: ./infra
-
-      - name: Upload Terraform Plan
-        uses: actions/upload-artifact@v6
-        with:
-          name: tfplan-${{ env.ENVIRONMENT }}
-          path: infra/tfplan
-          retention-days: 5
-
+    uses: ./.github/workflows/terraform-plan.yml
+    with:
+      environment: ${{ github.event.inputs.environment || 'dev' }}
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
 
   terraform-apply:
-    name: Terraform Apply
-    needs: [sonar-scan, terraform-plan]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    outputs:
-      cluster_name: ${{ steps.tf_outputs.outputs.cluster_name }}
-    if: github.ref == 'refs/heads/main'  
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-          terraform_wrapper: false
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@56d6a583f00f6bad6d19d91d53a7bc3b8143d0e9
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Terraform Init 
-        run: terraform init
-        working-directory: ./infra
-
-      - name: Download Terraform Plan
-        uses: actions/download-artifact@v4
-        with:
-          name: tfplan-${{ env.ENVIRONMENT }}
-          path: infra/
-
-      - name: Terraform Apply
-        id: apply
-        run: |
-          terraform apply \
-            -auto-approve tfplan
-        working-directory: ./infra
-
-      - name: Extract Terraform Outputs
-        id: tf_outputs
-        run: |
-          CLUSTER_NAME=$(terraform output -raw cluster_name)
-          echo "cluster_name=${CLUSTER_NAME}" >> $GITHUB_OUTPUT
-        working-directory: ./infra
+    needs: terraform-plan
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/terraform-apply.yml
+    with:
+      environment: ${{ github.event.inputs.environment || 'dev' }}
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
 
   datadog-deploy:
-    name: Deploy Datadog Agent
     needs: terraform-apply
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    env:
-      CLUSTER_NAME: ${{ needs.terraform-apply.outputs.cluster_name }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@56d6a583f00f6bad6d19d91d53a7bc3b8143d0e9
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Update kubeconfig
-        run: |
-          aws eks update-kubeconfig \
-            --name ${{ env.CLUSTER_NAME }} \
-            --region ${{ env.AWS_REGION }}
-
-      - name: Install Helm
-        uses: azure/setup-helm@fe7b79cd5ee1e45176fcad797de68ecaf3ca4814
-        with:
-          version: v4.1.0
-
-      - name: Add Datadog Helm repository
-        run: |
-          helm repo add datadog https://helm.datadoghq.com
-          helm repo update
-
-      - name: Create Datadog Secret
-        env:
-          DD_API_KEY: ${{ secrets.DD_API_KEY }}
-        run: |
-          kubectl create namespace datadog --dry-run=client -o yaml | kubectl apply -f -
-          kubectl create secret generic datadog-secret \
-            --from-literal=api-key="${DD_API_KEY}" \
-            --namespace=datadog \
-            --dry-run=client -o yaml | kubectl apply -f -
-
-      - name: Deploy Datadog Agent
-        run: |
-          helm upgrade --install datadog-agent datadog/datadog \
-            -f k8s/datadog/values.yaml \
-            --set datadog.clusterName=${{ env.CLUSTER_NAME }} \
-            --namespace datadog \
-            --create-namespace
-            
-
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/datadog-deploy.yml
+    with:
+      cluster_name: ${{ needs.terraform-apply.outputs.cluster_name }}
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+      DD_API_KEY: ${{ secrets.DD_API_KEY }}

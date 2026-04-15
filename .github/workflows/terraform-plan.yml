@@ -1,0 +1,83 @@
+name: Terraform Plan
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: false
+        type: string
+        default: dev
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      AWS_SESSION_TOKEN:
+        required: true
+    outputs:
+      tfplan_exitcode:
+        value: ${{ jobs.terraform-plan.outputs.tfplan_exitcode }}
+
+env:
+  AWS_REGION: us-east-1
+  TF_VERSION: 1.14.2
+
+jobs:
+  terraform-plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      tfplan_exitcode: ${{ steps.plan.outputs.exitcode }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@56d6a583f00f6bad6d19d91d53a7bc3b8143d0e9
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Format Check
+        id: fmt
+        run: terraform fmt -check -recursive
+        working-directory: ./infra
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        working-directory: ./infra
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+        working-directory: ./infra
+
+      - name: Terraform Plan
+        id: plan
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          terraform plan \
+            -var-file=inventories/"$ENVIRONMENT"/terraform.tfvars \
+            -out=tfplan \
+            -no-color \
+            -detailed-exitcode || echo "exitcode=$?" >> $GITHUB_OUTPUT
+        working-directory: ./infra
+
+      - name: Upload Terraform Plan
+        uses: actions/upload-artifact@v6
+        with:
+          name: tfplan-${{ inputs.environment }}
+          path: infra/tfplan
+          retention-days: 5

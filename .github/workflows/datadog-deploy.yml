@@ -1,0 +1,75 @@
+name: Deploy Datadog Agent
+
+on:
+  workflow_call:
+    inputs:
+      cluster_name:
+        required: true
+        type: string
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      AWS_SESSION_TOKEN:
+        required: true
+      DD_API_KEY:
+        required: true
+
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  datadog-deploy:
+    name: Deploy Datadog Agent
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      CLUSTER_NAME: ${{ inputs.cluster_name }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@56d6a583f00f6bad6d19d91d53a7bc3b8143d0e9
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+            --name "$CLUSTER_NAME" \
+            --region "$AWS_REGION"
+
+      - name: Install Helm
+        uses: azure/setup-helm@fe7b79cd5ee1e45176fcad797de68ecaf3ca4814
+        with:
+          version: v4.1.0
+
+      - name: Add Datadog Helm repository
+        run: |
+          helm repo add datadog https://helm.datadoghq.com
+          helm repo update
+
+      - name: Create Datadog Secret
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+        run: |
+          kubectl create namespace datadog --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create secret generic datadog-secret \
+            --from-literal=api-key="${DD_API_KEY}" \
+            --namespace=datadog \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy Datadog Agent
+        run: |
+          helm upgrade --install datadog-agent datadog/datadog \
+            -f k8s/datadog/values.yaml \
+            --set datadog.clusterName="$CLUSTER_NAME" \
+            --namespace datadog \
+            --create-namespace
