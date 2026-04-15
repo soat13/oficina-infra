@@ -77,6 +77,13 @@ Ponto de entrada único e seguro para a aplicação:
 - **Segurança**: Injeção automática do secret `X-Service-Token` em todas as requisições para o ALB
 - **Deploy**: Stages automatizados (dev, hom, prod)
 
+#### 8. **SQS Module** (`modules/sqs`)
+Filas de mensagens para comunicação assíncrona entre serviços:
+- **Fila principal** com configurações flexíveis de delay, retenção e visibilidade
+- **Dead Letter Queue (DLQ)** opcional com retenção personaizada e `maxReceiveCount` configurável
+- **Criptografia** via KMS (CMK ou chave gerenciada pela AWS)
+- Suporte a **long polling** via `receive_wait_time_seconds`
+
 
 
 ### Configuração por Ambiente
@@ -131,7 +138,8 @@ fase-2-oficina/
 │   │   ├── eks-cluster/              # Cluster Kubernetes
 │   │   ├── node-group/               # Worker Nodes
 │   │   ├── alb/                      # Application Load Balancer
-│   │   └── api-gateway/              # API Gateway REST API
+│   │   ├── api-gateway/              # API Gateway REST API
+│   │   └── sqs/                      # Filas SQS + DLQ opcional
 │   │
 │   ├── inventories/                  # Configurações por ambiente
 │   │   ├── dev/                      # Desenvolvimento
