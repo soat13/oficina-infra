@@ -1,5 +1,8 @@
 resource "aws_sqs_queue" "this" {
-  name = var.name
+  name = "${var.name}.fifo"
+
+  fifo_queue = true
+  content_based_deduplication = true 
 
   delay_seconds              = var.delay_seconds
   max_message_size           = var.max_message_size
@@ -26,7 +29,7 @@ resource "aws_sqs_queue" "this" {
 resource "aws_sqs_queue" "dlq" {
   count = var.create_dlq ? 1 : 0
 
-  name = "${var.name}-dlq"
+  name = "${var.name}-dlq.fifo"
 
   message_retention_seconds = 1209600 # 14 days
 

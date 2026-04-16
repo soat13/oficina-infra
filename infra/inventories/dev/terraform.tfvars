@@ -52,15 +52,15 @@ attach_iam_policies = false
 create_iam_policies = false
 
 sqs_queues = [
-  "repairorder-diagnostics-finished",
-  "repairorder-canceled",
-  "repairorder-finished",
-  "estimate-created",
-  "estimate-approved",
-  "estimate-rejected",
-  "product-stock-reduce-confirmed",
-  "product-stock-insufficient-detected",
-  "payment-status-changed"
+  "repairorder-diagnostics-finished.fifo",
+  "repairorder-canceled.fifo",
+  "repairorder-finished.fifo",
+  "estimate-created.fifo",
+  "estimate-approved.fifo",
+  "estimate-rejected.fifo",
+  "product-stock-reduce-confirmed.fifo",
+  "product-stock-insufficient-detected.fifo",
+  "payment-status-changed.fifo"
 ]
 
 tags = {
