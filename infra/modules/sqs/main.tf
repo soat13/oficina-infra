@@ -1,8 +1,8 @@
 resource "aws_sqs_queue" "this" {
-  name = "${var.name}.fifo"
+  name = local.queue_name
 
-  fifo_queue = true
-  content_based_deduplication = true 
+  fifo_queue                  = true
+  content_based_deduplication = true
 
   delay_seconds              = var.delay_seconds
   max_message_size           = var.max_message_size
@@ -21,7 +21,7 @@ resource "aws_sqs_queue" "this" {
   tags = merge(
     var.tags,
     {
-      Name = var.name
+      Name = local.queue_name
     }
   )
 }
@@ -29,8 +29,9 @@ resource "aws_sqs_queue" "this" {
 resource "aws_sqs_queue" "dlq" {
   count = var.create_dlq ? 1 : 0
 
-  name = "${var.name}-dlq.fifo"
+  name = local.dlq_name
 
+  fifo_queue                = true
   message_retention_seconds = 1209600 # 14 days
 
   kms_master_key_id                 = var.kms_master_key_id
@@ -39,7 +40,7 @@ resource "aws_sqs_queue" "dlq" {
   tags = merge(
     var.tags,
     {
-      Name = "${var.name}-dlq"
+      Name = local.dlq_name
     }
   )
 }
