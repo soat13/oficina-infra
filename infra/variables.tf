@@ -166,8 +166,11 @@ variable "auth_lambda_invoke_arn" {
 }
 
 variable "sqs_queues" {
-  description = "List of SQS queues to be created"
-  type        = list(string)
-  default     = []
+  description = "Map of SQS queues to be created"
+  type = map(object({
+    fifo_queue = optional(bool, false)
+    create_dlq = optional(bool, true)
+  }))
+  default = {}
 }
 

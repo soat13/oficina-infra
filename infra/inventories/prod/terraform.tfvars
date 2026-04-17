@@ -51,17 +51,17 @@ attach_iam_policies = false
 
 create_iam_policies = false
 
-sqs_queues = [
-  "repairorder-diagnostics-finished",
-  "repairorder-canceled",
-  "repairorder-finished",
-  "estimate-created",
-  "estimate-approved",
-  "estimate-rejected",
-  "product-stock-reduce-confirmed",
-  "product-stock-insufficient-detected",
-  "payment-status-changed"
-]
+sqs_queues = {
+  "repairorder-diagnostics-finished"    = {}
+  "repairorder-canceled"                = {}
+  "repairorder-finished"                = {}
+  "estimate-created"                    = {}
+  "estimate-approved"                   = {}
+  "estimate-rejected"                   = {}
+  "product-stock-reduce-confirmed"      = {}
+  "product-stock-insufficient-detected" = {}
+  "payment-status-changed"              = { fifo_queue = true, create_dlq = false }
+}
 
 tags = {
   Environment = "prod"
