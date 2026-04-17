@@ -3,6 +3,12 @@ variable "name" {
   type        = string
 }
 
+variable "fifo_queue" {
+  description = "Whether the queue is a FIFO queue"
+  type        = bool
+  default     = false
+}
+
 variable "delay_seconds" {
   description = "The time in seconds that the delivery of all messages in the queue will be delayed"
   type        = number

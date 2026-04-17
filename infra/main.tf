@@ -115,10 +115,11 @@ module "api_gateway" {
 # SQS Queues
 module "sqs_queues" {
   source   = "./modules/sqs"
-  for_each = toset(var.sqs_queues)
+  for_each = var.sqs_queues
 
   name       = each.key
-  create_dlq = true
+  fifo_queue = each.value.fifo_queue
+  create_dlq = each.value.create_dlq
 
   tags = var.tags
 }
