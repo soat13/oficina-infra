@@ -115,6 +115,11 @@ module "lambda_authorizer" {
   lambda_zip_path = var.lambda_zip_path
   lambda_role_arn = var.existing_lambda_role_arn
   tags            = var.tags
+
+  env_vars = {
+    AUTH_API_URL  = "${module.alb.dns_name}/auth/validate"
+    SERVICE_TOKEN = random_password.service_token.result
+  }
 }
 
 module "api_gateway" {
@@ -144,11 +149,12 @@ module "dynamodb_tables" {
   source   = "./modules/dynamodb"
   for_each = var.dynamodb_tables
 
-  name         = each.key
-  billing_mode = lookup(each.value, "billing_mode", "PAY_PER_REQUEST")
-  hash_key     = lookup(each.value, "hash_key", "id")
-  range_key    = lookup(each.value, "range_key", null)
-  attributes   = lookup(each.value, "attributes", [{ name = "id", type = "S" }])
+  name                     = each.key
+  billing_mode             = lookup(each.value, "billing_mode", "PAY_PER_REQUEST")
+  hash_key                 = lookup(each.value, "hash_key", "id")
+  range_key                = lookup(each.value, "range_key", null)
+  attributes               = lookup(each.value, "attributes", [{ name = "id", type = "S" }])
+  global_secondary_indexes = lookup(each.value, "global_secondary_indexes", [])
 
   tags = var.tags
 }

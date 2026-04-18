@@ -41,6 +41,20 @@ variable "tags" {
   default     = {}
 }
 
+variable "global_secondary_indexes" {
+  description = "List of GSI configurations"
+  type = list(object({
+    name               = string
+    hash_key           = string
+    range_key          = optional(string)
+    projection_type    = string
+    non_key_attributes = optional(list(string))
+    read_capacity      = optional(number)
+    write_capacity     = optional(number)
+  }))
+  default = []
+}
+
 variable "dynamodb_tables" {
   description = "List of DynamoDB tables to create"
   type        = list(string)

@@ -121,7 +121,7 @@ resource "aws_lb_listener_rule" "auth_access" {
 
   condition {
     path_pattern {
-      values = ["/auth/*"]
+      values = ["/auth/*", "/admin/users", "/admin/users/*"]
     }
   }
 

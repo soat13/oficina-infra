@@ -41,11 +41,11 @@ node_labels = {
   Workload    = "general"
 }
 
-existing_cluster_role_arn = "arn:aws:iam::985909969878:role/LabRole"
+existing_cluster_role_arn = "arn:aws:iam::205640074826:role/LabRole"
 
-existing_node_role_arn = "arn:aws:iam::985909969878:role/LabRole"
+existing_node_role_arn = "arn:aws:iam::205640074826:role/LabRole"
 
-auth_lambda_invoke_arn = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:985909969878:function:IdentityFunction/invocations"
+auth_lambda_invoke_arn = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:205640074826:function:IdentityFunction/invocations"
 
 attach_iam_policies = false
 
@@ -61,6 +61,29 @@ sqs_queues = {
   "product-stock-reduce-confirmed"      = {}
   "product-stock-insufficient-detected" = {}
   "payment-status-changed"              = { fifo_queue = true, create_dlq = false }
+}
+
+dynamodb_tables = {
+  "users" = {
+    hash_key = "id"
+    attributes = [
+      { name = "id", type = "S" },
+      { name = "document", type = "S" },
+      { name = "email", type = "S" }
+    ]
+    global_secondary_indexes = [
+      {
+        name            = "document-index"
+        hash_key        = "document"
+        projection_type = "ALL"
+      },
+      {
+        name            = "email-index"
+        hash_key        = "email"
+        projection_type = "ALL"
+      }
+    ]
+  }
 }
 
 tags = {
