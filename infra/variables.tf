@@ -173,8 +173,10 @@ variable "lambda_zip_path" {
 variable "sqs_queues" {
   description = "Map of SQS queues to be created"
   type = map(object({
-    fifo_queue = optional(bool, false)
-    create_dlq = optional(bool, true)
+    fifo_queue            = optional(bool, false)
+    create_dlq            = optional(bool, true)
+    deduplication_scope   = optional(string)
+    fifo_throughput_limit = optional(string)
   }))
   default = {}
 }

@@ -141,6 +141,10 @@ module "sqs_queues" {
   fifo_queue = each.value.fifo_queue
   create_dlq = each.value.create_dlq
 
+  # Enable High Throughput for FIFO queues by default
+  deduplication_scope   = each.value.deduplication_scope != null ? each.value.deduplication_scope : (each.value.fifo_queue ? "messageGroup" : null)
+  fifo_throughput_limit = each.value.fifo_throughput_limit != null ? each.value.fifo_throughput_limit : (each.value.fifo_queue ? "perMessageGroupId" : null)
+
   tags = var.tags
 }
 
