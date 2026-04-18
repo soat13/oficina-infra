@@ -10,6 +10,9 @@ resource "aws_sqs_queue" "this" {
   receive_wait_time_seconds  = var.receive_wait_time_seconds
   visibility_timeout_seconds = var.visibility_timeout_seconds
 
+  deduplication_scope   = var.deduplication_scope
+  fifo_throughput_limit = var.fifo_throughput_limit
+
   kms_master_key_id                 = var.kms_master_key_id
   kms_data_key_reuse_period_seconds = var.kms_master_key_id != null ? 300 : null
 

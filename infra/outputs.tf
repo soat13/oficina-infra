@@ -110,8 +110,18 @@ output "api_gateway_endpoint" {
 
 output "sqs_base_url" {
   description = "Base URL for SQS queues"
-  value = length(local.sqs_queue_keys) > 0 ? trimsuffix(
-    module.sqs_queues[local.sqs_queue_keys[0]].queue_id,
-    module.sqs_queues[local.sqs_queue_keys[0]].queue_name
+  value = length(keys(module.sqs_queues)) > 0 ? trimsuffix(
+    module.sqs_queues[keys(module.sqs_queues)[0]].queue_id,
+    module.sqs_queues[keys(module.sqs_queues)[0]].queue_name
   ) : ""
+}
+
+output "dynamodb_table_arns" {
+  description = "Map of DynamoDB table ARNs"
+  value       = { for k, v in module.dynamodb_tables : k => v.arn }
+}
+
+output "dynamodb_table_ids" {
+  description = "Map of DynamoDB table IDs"
+  value       = { for k, v in module.dynamodb_tables : k => v.id }
 }

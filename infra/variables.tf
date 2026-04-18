@@ -138,6 +138,11 @@ variable "existing_node_role_arn" {
   type        = string
 }
 
+variable "existing_lambda_role_arn" {
+  description = "ARN of existing IAM role to be used by Lambda Authorizer"
+  type        = string
+}
+
 variable "attach_iam_policies" {
   description = "Whether to attach AWS managed policies to existing roles (set to false if you don't have permission to modify roles)"
   type        = bool
@@ -160,17 +165,30 @@ variable "tags" {
   }
 }
 
-variable "auth_lambda_invoke_arn" {
-  description = "The Invoke ARN of the Identity Lambda required by API Gateway"
+variable "lambda_zip_path" {
+  description = "Path to the ZIP file containing the compiled Go binary (bootstrap) for the Lambda Authorizer"
   type        = string
 }
 
 variable "sqs_queues" {
   description = "Map of SQS queues to be created"
   type = map(object({
-    fifo_queue = optional(bool, false)
-    create_dlq = optional(bool, true)
+    fifo_queue            = optional(bool, false)
+    create_dlq            = optional(bool, true)
+    deduplication_scope   = optional(string)
+    fifo_throughput_limit = optional(string)
   }))
   default = {}
 }
 
+variable "dynamodb_tables" {
+  description = "Map of DynamoDB tables to create"
+  type        = any
+  default     = {}
+}
+
+variable "auth_lambda_invoke_arn" {
+  description = "ARN for the API Gateway to invoke the authorization lambda"
+  type        = string
+  default     = ""
+}

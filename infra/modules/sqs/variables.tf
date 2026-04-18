@@ -62,3 +62,15 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "deduplication_scope" {
+  description = "Specifies whether message deduplication occurs at the message group or queue level. Valid values are messageGroup and queue."
+  type        = string
+  default     = null
+}
+
+variable "fifo_throughput_limit" {
+  description = "Specifies whether the FIFO queue throughput limit applies to the entire queue or per message group ID. Valid values are perQueue and perMessageGroupId."
+  type        = string
+  default     = null
+}

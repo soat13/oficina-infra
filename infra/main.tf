@@ -102,6 +102,26 @@ resource "aws_autoscaling_attachment" "asg_attachment" {
   lb_target_group_arn    = module.alb.target_group_arn
 }
 
+resource "aws_autoscaling_attachment" "auth_asg_attachment" {
+  autoscaling_group_name = module.node_group.autoscaling_group_names[0]
+  lb_target_group_arn    = module.alb.auth_target_group_arn
+}
+
+# API Gateway Module
+module "lambda_authorizer" {
+  source = "./modules/lambda-authorizer"
+
+  name            = "${var.cluster_name}-authorizer"
+  lambda_zip_path = var.lambda_zip_path
+  lambda_role_arn = var.existing_lambda_role_arn
+  tags            = var.tags
+
+  env_vars = {
+    AUTH_API_URL  = "${module.alb.dns_name}/auth/validate"
+    SERVICE_TOKEN = random_password.service_token.result
+  }
+}
+
 module "api_gateway" {
   source                 = "./modules/api-gateway"
   name                   = "${var.cluster_name}-api"
@@ -109,7 +129,7 @@ module "api_gateway" {
   tags                   = var.tags
   load_balancer_uri      = module.alb.dns_name
   service_token          = random_password.service_token.result
-  auth_lambda_invoke_arn = var.auth_lambda_invoke_arn
+  auth_lambda_invoke_arn = module.lambda_authorizer.lambda_invoke_arn
 }
 
 # SQS Queues
@@ -120,6 +140,25 @@ module "sqs_queues" {
   name       = each.key
   fifo_queue = each.value.fifo_queue
   create_dlq = each.value.create_dlq
+
+  # Enable High Throughput for FIFO queues by default
+  deduplication_scope   = each.value.deduplication_scope != null ? each.value.deduplication_scope : (each.value.fifo_queue ? "messageGroup" : null)
+  fifo_throughput_limit = each.value.fifo_throughput_limit != null ? each.value.fifo_throughput_limit : (each.value.fifo_queue ? "perMessageGroupId" : null)
+
+  tags = var.tags
+}
+
+# DynamoDB Tables
+module "dynamodb_tables" {
+  source   = "./modules/dynamodb"
+  for_each = var.dynamodb_tables
+
+  name                     = each.key
+  billing_mode             = lookup(each.value, "billing_mode", "PAY_PER_REQUEST")
+  hash_key                 = lookup(each.value, "hash_key", "id")
+  range_key                = lookup(each.value, "range_key", null)
+  attributes               = lookup(each.value, "attributes", [{ name = "id", type = "S" }])
+  global_secondary_indexes = lookup(each.value, "global_secondary_indexes", [])
 
   tags = var.tags
 }
