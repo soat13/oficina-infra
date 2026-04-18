@@ -1,8 +1,8 @@
 resource "aws_sqs_queue" "this" {
   name = local.queue_name
 
-  fifo_queue                  = true
-  content_based_deduplication = true
+  fifo_queue                  = var.fifo_queue
+  content_based_deduplication = var.fifo_queue
 
   delay_seconds              = var.delay_seconds
   max_message_size           = var.max_message_size
@@ -31,7 +31,7 @@ resource "aws_sqs_queue" "dlq" {
 
   name = local.dlq_name
 
-  fifo_queue                = true
+  fifo_queue                = var.fifo_queue
   message_retention_seconds = 1209600 # 14 days
 
   kms_master_key_id                 = var.kms_master_key_id
