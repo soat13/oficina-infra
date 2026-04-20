@@ -58,6 +58,7 @@ sqs_queues = {
   "estimate-created"                    = {}
   "estimate-approved"                   = {}
   "estimate-rejected"                   = {}
+  "estimate-canceled"                   = {}
   "product-stock-reduce-confirmed"      = {}
   "product-stock-insufficient-detected" = {}
   "payment-status-changed"              = { fifo_queue = true, create_dlq = false }
