@@ -192,3 +192,12 @@ variable "auth_lambda_invoke_arn" {
   type        = string
   default     = ""
 }
+
+variable "sns_topics" {
+  description = "Map of SNS topics to create. `subscribers` is a list of queue names (keys from sqs_queues) that will receive messages published to the topic."
+  type = map(object({
+    fifo_topic  = optional(bool, false)
+    subscribers = optional(list(string), [])
+  }))
+  default = {}
+}

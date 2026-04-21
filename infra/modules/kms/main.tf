@@ -34,6 +34,18 @@ resource "aws_kms_key" "main" {
         ]
         Resource = "*"
       },
+      {
+        Sid    = "Allow SNS and SQS services to use the key"
+        Effect = "Allow"
+        Principal = {
+          Service = ["sns.amazonaws.com", "sqs.amazonaws.com"]
+        }
+        Action = [
+          "kms:Decrypt",
+          "kms:GenerateDataKey*"
+        ]
+        Resource = "*"
+      },
     ]
   })
 
