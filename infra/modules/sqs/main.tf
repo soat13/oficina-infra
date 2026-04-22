@@ -47,3 +47,26 @@ resource "aws_sqs_queue" "dlq" {
     }
   )
 }
+
+resource "aws_sqs_queue_policy" "allow_sns" {
+  count = length(var.allowed_sns_source_arns) > 0 ? 1 : 0
+
+  queue_url = aws_sqs_queue.this.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect    = "Allow"
+        Principal = { Service = "sns.amazonaws.com" }
+        Action    = "sqs:SendMessage"
+        Resource  = aws_sqs_queue.this.arn
+        Condition = {
+          ArnEquals = {
+            "aws:SourceArn" = var.allowed_sns_source_arns
+          }
+        }
+      }
+    ]
+  })
+}

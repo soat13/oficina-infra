@@ -145,6 +145,30 @@ module "sqs_queues" {
   deduplication_scope   = each.value.deduplication_scope != null ? each.value.deduplication_scope : (each.value.fifo_queue ? "messageGroup" : null)
   fifo_throughput_limit = each.value.fifo_throughput_limit != null ? each.value.fifo_throughput_limit : (each.value.fifo_queue ? "perMessageGroupId" : null)
 
+  allowed_sns_source_arns = lookup(local.queue_source_topic_arns, each.key, [])
+
+  kms_master_key_id = module.kms.key_arn
+
+  tags = var.tags
+}
+
+# SNS Topics (fanout to SQS queues)
+module "sns_topics" {
+  source   = "./modules/sns"
+  for_each = var.sns_topics
+
+  name       = each.key
+  fifo_topic = each.value.fifo_topic
+
+  subscriptions = {
+    for queue_name in each.value.subscribers :
+    queue_name => {
+      endpoint = module.sqs_queues[queue_name].queue_arn
+    }
+  }
+
+  kms_master_key_id = module.kms.key_arn
+
   tags = var.tags
 }
 

@@ -55,22 +55,31 @@ attach_iam_policies = false
 create_iam_policies = false
 
 sqs_queues = {
-  "repairorder-diagnostics-finished"    = {}
-  "repairorder-canceled"                = {}
-  "repairorder-finished"                = {}
-  "estimate-created"                    = {}
-  "estimate-approved"                   = {}
-  "estimate-rejected"                   = {}
-  "estimate-canceled"                   = {}
-  "product-stock-reduce-confirmed"      = {}
-  "product-stock-insufficient-detected" = {}
-  "payment-status-changed"              = { fifo_queue = true, create_dlq = false }
+  "repairorder-diagnostics-finished"              = {}
+  "repairorder-canceled"                          = {}
+  "estimate-created"                              = {}
+  "estimate-approved"                             = {}
+  "estimate-rejected"                             = {}
+  "estimate-canceled"                             = {}
+  "product-stock-insufficient-detected"           = {}
+  "estimate-product-stock-reduction-confirmed"    = {}
+  "repairorder-product-stock-reduction-confirmed" = {}
+  "payment-request"                               = {}
+  "payment-link-request"                          = {}
+  "payment-status-changed"                        = { fifo_queue = true, create_dlq = false }
 }
 
-tags = {
-  Environment = "dev"
-  ManagedBy   = "terraform"
-  Project     = "oficina"
+sns_topics = {
+  "payment-status-changed" = {
+    fifo_topic  = true
+    subscribers = ["payment-status-changed", "payment-link-request"]
+  }
+  "product-stock-reduction-confirmed" = {
+    subscribers = [
+      "estimate-product-stock-reduction-confirmed",
+      "repairorder-product-stock-reduction-confirmed",
+    ]
+  }
 }
 
 dynamodb_tables = {
@@ -94,4 +103,10 @@ dynamodb_tables = {
       }
     ]
   }
+}
+
+tags = {
+  Environment = "dev"
+  ManagedBy   = "terraform"
+  Project     = "oficina"
 }

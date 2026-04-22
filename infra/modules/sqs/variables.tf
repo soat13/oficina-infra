@@ -74,3 +74,9 @@ variable "fifo_throughput_limit" {
   type        = string
   default     = null
 }
+
+variable "allowed_sns_source_arns" {
+  description = "List of SNS topic ARNs allowed to send messages to this queue."
+  type        = list(string)
+  default     = []
+}
