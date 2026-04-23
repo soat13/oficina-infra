@@ -5,7 +5,7 @@ resource "aws_sns_topic" "this" {
   content_based_deduplication = var.fifo_topic
 
   kms_master_key_id = var.kms_master_key_id
-  delivery_policy = var.delivery_policy
+  delivery_policy   = var.delivery_policy
 
   tags = merge(
     var.tags,
