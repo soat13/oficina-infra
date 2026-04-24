@@ -41,12 +41,12 @@ node_labels = {
   Workload    = "general"
 }
 
-existing_cluster_role_arn = "arn:aws:iam::985909969878:role/LabRole"
+existing_cluster_role_arn = "arn:aws:iam::409721164017:role/LabRole"
 
-existing_node_role_arn = "arn:aws:iam::985909969878:role/LabRole"
+existing_node_role_arn = "arn:aws:iam::409721164017:role/LabRole"
 
-auth_lambda_invoke_arn   = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:985909969878:function:IdentityFunction/invocations"
-existing_lambda_role_arn = "arn:aws:iam::985909969878:role/LabRole"
+auth_lambda_invoke_arn   = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:409721164017:function:IdentityFunction/invocations"
+existing_lambda_role_arn = "arn:aws:iam::409721164017:role/LabRole"
 
 lambda_zip_path = "../bin/authorizer.zip"
 
