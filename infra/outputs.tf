@@ -116,6 +116,13 @@ output "sqs_base_url" {
   ) : ""
 }
 
+output "sns_base_arn" {
+  description = "Base ARN for SNS topics"
+  value = length(keys(module.sns_topics)) > 0 ? (
+    module.sns_topics[keys(module.sns_topics)[0]].topic_arn_base
+  ) : ""
+}
+
 output "dynamodb_table_arns" {
   description = "Map of DynamoDB table ARNs"
   value       = { for k, v in module.dynamodb_tables : k => v.arn }
