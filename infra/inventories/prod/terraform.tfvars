@@ -58,7 +58,8 @@ sqs_queues = {
   "repairorder-diagnostics-finished"              = {}
   "repairorder-canceled"                          = {}
   "estimate-created"                              = {}
-  "estimate-approved"                             = {}
+  "product-estimate-approved"                     = {}
+  "repairorder-estimate-approved"                 = {}
   "estimate-rejected"                             = {}
   "estimate-canceled"                             = {}
   "product-stock-insufficient-detected"           = {}
@@ -78,6 +79,12 @@ sns_topics = {
     subscribers = [
       "estimate-product-stock-reduction-confirmed",
       "repairorder-product-stock-reduction-confirmed",
+    ]
+  }
+  "estimate-approved" = {
+    subscribers = [
+      "product-estimate-approved",
+      "repairorder-estimate-approved",
     ]
   }
 }
