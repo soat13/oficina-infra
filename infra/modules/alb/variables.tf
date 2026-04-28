@@ -36,3 +36,9 @@ variable "auth_node_port" {
   type        = number
   default     = 30008
 }
+
+variable "webhook_node_port" {
+  description = "The NodePort the auth application is listening on"
+  type        = number
+  default     = 30009
+}
