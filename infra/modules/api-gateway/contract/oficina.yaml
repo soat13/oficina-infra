@@ -28,10 +28,12 @@ tags:
     description: Gerenciamento das ordens de reparo.
   - name: Estimates
     description: Orçamentos gerados a partir de ordens de reparo.
+  - name: Webhooks
+    description: Recebimento de notificações de serviços externos.
 paths:
   /auth/login:
     post:
-      tags: [Auth]
+      tags: [ Auth ]
       summary: Autenticar usuário
       description: Retorna um token JWT válido para acessar as rotas protegidas.
       security: []
@@ -81,9 +83,34 @@ paths:
         type: "http_proxy"
         requestParameters:
           integration.request.header.X-Service-Token: "'${service_token}'"
+  /webhooks/mercado-pago:
+    post:
+      tags: [ Webhooks ]
+      summary: Webhook Mercado Pago
+      description: Recebe notificações de eventos do Mercado Pago.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Notificação recebida com sucesso.
+      x-amazon-apigateway-integration:
+        uri: "${load_balancer_uri}/webhook/mercado-pago"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        type: "http_proxy"
+        requestParameters:
+          integration.request.header.X-Service-Token: "'${service_token}'"
   /admin/services:
     get:
-      tags: [Services]
+      tags: [ Services ]
       summary: Listar serviços
       parameters:
         - $ref: "#/components/parameters/LimitParam"
@@ -108,7 +135,7 @@ paths:
         requestParameters:
           integration.request.header.X-Service-Token: "'${service_token}'"
     post:
-      tags: [Services]
+      tags: [ Services ]
       summary: Criar serviço
       requestBody:
         required: true
@@ -159,7 +186,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/ResourceIdParam"
     get:
-      tags: [Services]
+      tags: [ Services ]
       summary: Obter serviço por ID
       responses:
         "200":
@@ -200,7 +227,7 @@ paths:
           integration.request.path.id: "method.request.path.id"
           integration.request.header.X-Service-Token: "'${service_token}'"
     patch:
-      tags: [Services]
+      tags: [ Services ]
       summary: Atualizar serviço
       requestBody:
         required: true
@@ -260,7 +287,7 @@ paths:
           integration.request.path.id: "method.request.path.id"
           integration.request.header.X-Service-Token: "'${service_token}'"
     delete:
-      tags: [Services]
+      tags: [ Services ]
       summary: Remover serviço
       responses:
         "204":
@@ -298,7 +325,7 @@ paths:
           integration.request.header.X-Service-Token: "'${service_token}'"
   /admin/products:
     get:
-      tags: [Products]
+      tags: [ Products ]
       summary: Listar produtos
       parameters:
         - $ref: "#/components/parameters/LimitParam"
@@ -321,7 +348,7 @@ paths:
         httpMethod: "GET"
         type: "http_proxy"
     post:
-      tags: [Products]
+      tags: [ Products ]
       summary: Criar produto
       requestBody:
         required: true
@@ -372,7 +399,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/ResourceIdParam"
     get:
-      tags: [Products]
+      tags: [ Products ]
       summary: Obter produto por ID
       responses:
         "200":
@@ -413,7 +440,7 @@ paths:
           integration.request.path.id: "method.request.path.id"
           integration.request.header.X-Service-Token: "'${service_token}'"
     patch:
-      tags: [Products]
+      tags: [ Products ]
       summary: Atualizar produto
       requestBody:
         required: true
@@ -473,7 +500,7 @@ paths:
           integration.request.path.id: "method.request.path.id"
           integration.request.header.X-Service-Token: "'${service_token}'"
     delete:
-      tags: [Products]
+      tags: [ Products ]
       summary: Remover produto
       responses:
         "204":
@@ -511,7 +538,7 @@ paths:
           integration.request.header.X-Service-Token: "'${service_token}'"
   /admin/customers:
     get:
-      tags: [Customers]
+      tags: [ Customers ]
       summary: Listar clientes
       parameters:
         - $ref: "#/components/parameters/LimitParam"
@@ -536,7 +563,7 @@ paths:
         requestParameters:
           integration.request.header.X-Service-Token: "'${service_token}'"
     post:
-      tags: [Customers]
+      tags: [ Customers ]
       summary: Criar cliente
       requestBody:
         required: true
@@ -593,7 +620,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/ResourceIdParam"
     get:
-      tags: [Customers]
+      tags: [ Customers ]
       summary: Obter cliente por ID
       responses:
         "200":
@@ -634,7 +661,7 @@ paths:
           integration.request.path.id: "method.request.path.id"
           integration.request.header.X-Service-Token: "'${service_token}'"
     patch:
-      tags: [Customers]
+      tags: [ Customers ]
       summary: Atualizar cliente
       requestBody:
         required: true
@@ -694,7 +721,7 @@ paths:
           integration.request.path.id: "method.request.path.id"
           integration.request.header.X-Service-Token: "'${service_token}'"
     delete:
-      tags: [Customers]
+      tags: [ Customers ]
       summary: Remover cliente
       responses:
         "204":
@@ -734,7 +761,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/ResourceIdParam"
     get:
-      tags: [Vehicles]
+      tags: [ Vehicles ]
       summary: Listar veículos por cliente
       parameters:
         - $ref: "#/components/parameters/LimitParam"
@@ -770,7 +797,7 @@ paths:
           integration.request.header.X-Service-Token: "'${service_token}'"
   /admin/vehicles:
     get:
-      tags: [Vehicles]
+      tags: [ Vehicles ]
       summary: Listar veículos
       parameters:
         - $ref: "#/components/parameters/LimitParam"
@@ -795,7 +822,7 @@ paths:
         requestParameters:
           integration.request.header.X-Service-Token: "'${service_token}'"
     post:
-      tags: [Vehicles]
+      tags: [ Vehicles ]
       summary: Criar veículo
       requestBody:
         required: true
@@ -846,7 +873,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/ResourceIdParam"
     get:
-      tags: [Vehicles]
+      tags: [ Vehicles ]
       summary: Obter veículo por ID
       responses:
         "200":
@@ -887,7 +914,7 @@ paths:
           integration.request.path.id: "method.request.path.id"
           integration.request.header.X-Service-Token: "'${service_token}'"
     patch:
-      tags: [Vehicles]
+      tags: [ Vehicles ]
       summary: Atualizar veículo
       requestBody:
         required: true
@@ -947,7 +974,7 @@ paths:
           integration.request.path.id: "method.request.path.id"
           integration.request.header.X-Service-Token: "'${service_token}'"
     delete:
-      tags: [Vehicles]
+      tags: [ Vehicles ]
       summary: Remover veículo
       responses:
         "204":
@@ -985,7 +1012,7 @@ paths:
           integration.request.header.X-Service-Token: "'${service_token}'"
   /admin/users:
     get:
-      tags: [Users]
+      tags: [ Users ]
       summary: Listar usuários
       parameters:
         - $ref: "#/components/parameters/LimitParam"
@@ -1010,7 +1037,7 @@ paths:
         requestParameters:
           integration.request.header.X-Service-Token: "'${service_token}'"
     post:
-      tags: [Users]
+      tags: [ Users ]
       summary: Criar usuário
       requestBody:
         required: true
@@ -1063,7 +1090,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/ResourceIdParam"
     get:
-      tags: [Users]
+      tags: [ Users ]
       summary: Obter usuário por ID
       responses:
         "200":
@@ -1104,7 +1131,7 @@ paths:
           integration.request.path.id: "method.request.path.id"
           integration.request.header.X-Service-Token: "'${service_token}'"
     patch:
-      tags: [Users]
+      tags: [ Users ]
       summary: Atualizar usuário
       requestBody:
         required: true
@@ -1164,7 +1191,7 @@ paths:
           integration.request.path.id: "method.request.path.id"
           integration.request.header.X-Service-Token: "'${service_token}'"
     delete:
-      tags: [Users]
+      tags: [ Users ]
       summary: Remover usuário
       responses:
         "204":
@@ -1202,7 +1229,7 @@ paths:
           integration.request.header.X-Service-Token: "'${service_token}'"
   /admin/repair-orders:
     get:
-      tags: [Repair Orders]
+      tags: [ Repair Orders ]
       summary: Listar ordens de reparo
       parameters:
         - $ref: "#/components/parameters/LimitParam"
@@ -1227,7 +1254,7 @@ paths:
         requestParameters:
           integration.request.header.X-Service-Token: "'${service_token}'"
     post:
-      tags: [Repair Orders]
+      tags: [ Repair Orders ]
       summary: Criar ordem de reparo
       requestBody:
         required: true
@@ -1274,7 +1301,7 @@ paths:
           integration.request.header.X-Service-Token: "'${service_token}'"
   /admin/repair-orders/average-execution-time:
     get:
-      tags: [Repair Orders]
+      tags: [ Repair Orders ]
       summary: Obter tempo médio de execução
       responses:
         "200":
@@ -1299,7 +1326,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/ResourceIdParam"
     get:
-      tags: [Repair Orders]
+      tags: [ Repair Orders ]
       summary: Obter ordem de reparo por ID
       responses:
         "200":
@@ -1343,7 +1370,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/ResourceIdParam"
     post:
-      tags: [Repair Orders]
+      tags: [ Repair Orders ]
       summary: Cancelar ordem de reparo
       responses:
         "204":
@@ -1383,7 +1410,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/ResourceIdParam"
     post:
-      tags: [Repair Orders]
+      tags: [ Repair Orders ]
       summary: Iniciar diagnóstico da ordem
       responses:
         "204":
@@ -1423,9 +1450,10 @@ paths:
     parameters:
       - $ref: "#/components/parameters/ResourceIdParam"
     post:
-      tags: [Repair Orders]
+      tags: [ Repair Orders ]
       summary: Finalizar diagnóstico da ordem
-      description: Finaliza o diagnóstico informando produtos e serviços necessários para o reparo.
+      description: Finaliza o diagnóstico informando produtos e serviços necessários
+        para o reparo.
       requestBody:
         required: true
         content:
@@ -1525,7 +1553,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/ResourceIdParam"
     post:
-      tags: [Repair Orders]
+      tags: [ Repair Orders ]
       summary: Iniciar execução da ordem
       responses:
         "204":
@@ -1565,7 +1593,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/ResourceIdParam"
     post:
-      tags: [Repair Orders]
+      tags: [ Repair Orders ]
       summary: Finalizar execução da ordem
       responses:
         "204":
@@ -1605,7 +1633,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/ResourceIdParam"
     post:
-      tags: [Repair Orders]
+      tags: [ Repair Orders ]
       summary: Liberar veículo
       responses:
         "204":
@@ -1645,7 +1673,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/ResourceIdParam"
     post:
-      tags: [Estimates]
+      tags: [ Estimates ]
       summary: Aprovar orçamento
       responses:
         "200":
@@ -1685,7 +1713,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/ResourceIdParam"
     post:
-      tags: [Estimates]
+      tags: [ Estimates ]
       summary: Rejeitar orçamento
       responses:
         "200":
@@ -1725,7 +1753,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/ResourceIdParam"
     post:
-      tags: [Estimates]
+      tags: [ Estimates ]
       summary: Adicionar item ao orçamento
       description: Adiciona um produto ou serviço ao orçamento existente.
       requestBody:
@@ -1779,7 +1807,8 @@ paths:
                     code: "409"
                     message: cannot change items after approval
         "422":
-          description: Validação de negócio falhou (produto/serviço não encontrado ou quantidade inválida).
+          description: Validação de negócio falhou (produto/serviço não encontrado ou
+            quantidade inválida).
           content:
             application/json:
               schema:
@@ -1815,7 +1844,7 @@ paths:
           type: string
           format: uuid
     delete:
-      tags: [Estimates]
+      tags: [ Estimates ]
       summary: Remover item do orçamento
       responses:
         "200":
@@ -1850,7 +1879,8 @@ paths:
                 code: "409"
                 message: cannot change items after approval
         "422":
-          description: Validação de negócio falhou (item não encontrado ou orçamento precisa ter pelo menos um item).
+          description: Validação de negócio falhou (item não encontrado ou orçamento
+            precisa ter pelo menos um item).
           content:
             application/json:
               schema:
@@ -1973,7 +2003,7 @@ components:
   schemas:
     Error:
       type: object
-      required: [code, message]
+      required: [ code, message ]
       properties:
         code:
           type: string
@@ -1983,7 +2013,7 @@ components:
           example: invalid JSON body
     IdResponse:
       type: object
-      required: [id]
+      required: [ id ]
       properties:
         id:
           type: string
@@ -1991,7 +2021,7 @@ components:
           description: ID do recurso criado.
     ValidationError:
       type: object
-      required: [code, message]
+      required: [ code, message ]
       properties:
         code:
           type: string
@@ -2012,7 +2042,7 @@ components:
                 example: Password is a required field
     LoginRequest:
       type: object
-      required: [email, password]
+      required: [ email, password ]
       properties:
         email:
           type: string
@@ -2022,7 +2052,7 @@ components:
           minLength: 8
     AuthenticatedUser:
       type: object
-      required: [id, name, email, roles]
+      required: [ id, name, email, roles ]
       properties:
         id:
           type: string
@@ -2038,7 +2068,7 @@ components:
             type: string
     LoginResponse:
       type: object
-      required: [access_token, token_type, expires_in, expires_at, user]
+      required: [ access_token, token_type, expires_in, expires_at, user ]
       properties:
         access_token:
           type: string
@@ -2056,7 +2086,7 @@ components:
           $ref: "#/components/schemas/AuthenticatedUser"
     Service:
       type: object
-      required: [id, name, price]
+      required: [ id, name, price ]
       properties:
         id:
           type: string
@@ -2069,7 +2099,7 @@ components:
           description: Preço do serviço em centavos (BRL).
     ServiceCreateRequest:
       type: object
-      required: [name, price]
+      required: [ name, price ]
       properties:
         name:
           type: string
@@ -2092,7 +2122,7 @@ components:
           description: Preço do serviço em centavos (BRL).
     ServiceListResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           type: array
@@ -2100,7 +2130,7 @@ components:
             $ref: "#/components/schemas/Service"
     Product:
       type: object
-      required: [id, name, price, stock]
+      required: [ id, name, price, stock ]
       properties:
         id:
           type: string
@@ -2116,7 +2146,7 @@ components:
           minimum: 0
     ProductCreateRequest:
       type: object
-      required: [name, price]
+      required: [ name, price ]
       properties:
         name:
           type: string
@@ -2146,7 +2176,7 @@ components:
           minimum: 0
     ProductListResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           type: array
@@ -2154,7 +2184,7 @@ components:
             $ref: "#/components/schemas/Product"
     Customer:
       type: object
-      required: [id, name, document, document_type, email, phone_number]
+      required: [ id, name, document, document_type, email, phone_number ]
       properties:
         id:
           type: string
@@ -2173,7 +2203,7 @@ components:
           type: string
     CustomerCreateRequest:
       type: object
-      required: [name, document, email, phone_number]
+      required: [ name, document, email, phone_number ]
       properties:
         name:
           type: string
@@ -2201,7 +2231,7 @@ components:
           description: Telefone atualizado.
     CustomerListResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           type: array
@@ -2209,7 +2239,7 @@ components:
             $ref: "#/components/schemas/Customer"
     Vehicle:
       type: object
-      required: [id, customer_id, plate, brand, model, year]
+      required: [ id, customer_id, plate, brand, model, year ]
       properties:
         id:
           type: string
@@ -2227,7 +2257,7 @@ components:
           type: integer
     VehicleCreateRequest:
       type: object
-      required: [customer_id, plate, brand, model, year]
+      required: [ customer_id, plate, brand, model, year ]
       properties:
         customer_id:
           type: string
@@ -2256,7 +2286,7 @@ components:
           minimum: 1900
     VehicleListResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           type: array
@@ -2264,7 +2294,7 @@ components:
             $ref: "#/components/schemas/Vehicle"
     User:
       type: object
-      required: [id, name, document, document_type, email, phone_number, roles]
+      required: [ id, name, document, document_type, email, phone_number, roles ]
       properties:
         id:
           type: string
@@ -2286,7 +2316,7 @@ components:
             type: string
     UserCreateRequest:
       type: object
-      required: [name, document, email, phone_number, password, roles]
+      required: [ name, document, email, phone_number, password, roles ]
       properties:
         name:
           type: string
@@ -2326,7 +2356,7 @@ components:
             type: string
     UserListResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           type: array
@@ -2334,7 +2364,7 @@ components:
             $ref: "#/components/schemas/User"
     RepairOrder:
       type: object
-      required: [id, customer_id, vehicle_id, status, created_at, updated_at]
+      required: [ id, customer_id, vehicle_id, status, created_at, updated_at ]
       properties:
         id:
           type: string
@@ -2347,7 +2377,8 @@ components:
           format: uuid
         status:
           type: string
-          description: Status atual da ordem (por exemplo, created, in_execution, finished, etc).
+          description: Status atual da ordem (por exemplo, created, in_execution,
+            finished, etc).
         created_at:
           type: string
           format: date-time
@@ -2356,7 +2387,7 @@ components:
           format: date-time
     RepairOrderCreateRequest:
       type: object
-      required: [customer_id, vehicle_id]
+      required: [ customer_id, vehicle_id ]
       properties:
         customer_id:
           type: string
@@ -2366,7 +2397,7 @@ components:
           format: uuid
     RepairOrderListResponse:
       type: object
-      required: [data]
+      required: [ data ]
       properties:
         data:
           type: array
@@ -2382,7 +2413,7 @@ components:
           description: Tempo médio de execução das ordens em minutos.
     DiagnosticProductItem:
       type: object
-      required: [id, quantity]
+      required: [ id, quantity ]
       properties:
         id:
           type: string
@@ -2394,7 +2425,7 @@ components:
           description: Quantidade necessária do produto.
     DiagnosticServiceItem:
       type: object
-      required: [id, quantity]
+      required: [ id, quantity ]
       properties:
         id:
           type: string
@@ -2406,7 +2437,7 @@ components:
           description: Quantidade do serviço.
     FinishDiagnosticsRequest:
       type: object
-      required: [products, services]
+      required: [ products, services ]
       properties:
         products:
           type: array
@@ -2420,10 +2451,11 @@ components:
             $ref: "#/components/schemas/DiagnosticServiceItem"
           minItems: 1
           description: Lista de serviços necessários para o reparo.
-      description: É necessário informar ao menos um produto e um serviço para finalizar o diagnóstico.
+      description: É necessário informar ao menos um produto e um serviço para
+        finalizar o diagnóstico.
     AddItemRequest:
       type: object
-      required: [item_id, quantity]
+      required: [ item_id, quantity ]
       properties:
         item_id:
           type: string
