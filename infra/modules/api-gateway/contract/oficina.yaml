@@ -99,7 +99,7 @@ paths:
         "200":
           description: Notificação recebida com sucesso.
       x-amazon-apigateway-integration:
-        uri: "${load_balancer_uri}/webhook/mercado-pago"
+        uri: "${load_balancer_uri}/webhooks/mercado-pago"
         responses:
           default:
             statusCode: "200"
