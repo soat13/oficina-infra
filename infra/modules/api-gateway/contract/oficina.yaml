@@ -348,7 +348,6 @@ paths:
         httpMethod: "GET"
         type: "http_proxy"
         requestParameters:
-          integration.request.path.id: "method.request.path.id"
           integration.request.header.X-Service-Token: "'${service_token}'"
     post:
       tags: [ Products ]
