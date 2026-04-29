@@ -181,12 +181,6 @@ variable "sqs_queues" {
   default = {}
 }
 
-variable "dynamodb_tables" {
-  description = "Map of DynamoDB tables to create"
-  type        = any
-  default     = {}
-}
-
 variable "auth_lambda_invoke_arn" {
   description = "ARN for the API Gateway to invoke the authorization lambda"
   type        = string
