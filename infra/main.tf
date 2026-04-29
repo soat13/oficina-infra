@@ -107,6 +107,11 @@ resource "aws_autoscaling_attachment" "auth_asg_attachment" {
   lb_target_group_arn    = module.alb.auth_target_group_arn
 }
 
+resource "aws_autoscaling_attachment" "webhooks_asg_attachment" {
+  autoscaling_group_name = module.node_group.autoscaling_group_names[0]
+  lb_target_group_arn    = module.alb.webhooks_target_group_arn
+}
+
 # API Gateway Module
 module "lambda_authorizer" {
   source = "./modules/lambda-authorizer"

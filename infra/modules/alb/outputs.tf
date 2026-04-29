@@ -10,6 +10,10 @@ output "auth_target_group_arn" {
   value = aws_lb_target_group.auth.arn
 }
 
+output "webhooks_target_group_arn" {
+  value = aws_lb_target_group.webhooks.arn
+}
+
 output "security_group_id" {
   value = aws_security_group.alb.id
 }
