@@ -66,23 +66,36 @@ Worker nodes gerenciados:
 #### 6. **ALB Module** (`modules/alb`)
 Application Load Balancer para distribuição de tráfego:
 - **Load Balancer**: Internet-facing, ouvindo na porta 80
-- **Target Group**: Redirecionamento para NodePort (30007) nos worker nodes
+- **Target Groups**: Múltiplos grupos para diferentes serviços (App, Auth, Webhooks)
+- **NodePort**: Redirecionamento para portas específicas (30007, 30008, 30009) nos worker nodes
 - **Segurança**: Security Group permitindo acesso HTTP externo
-- **Regras de Listener**: Bloqueio de acesso direto, permitindo apenas requisições com o header `X-Service-Token` correto
+- **Regras de Listener**: Roteamento baseado em path e validação do header `X-Service-Token`
 
 #### 7. **API Gateway Module** (`modules/api-gateway`)
 Ponto de entrada único e seguro para a aplicação:
 - **REST API**: Configurado via OpenAPI (`oficina.yaml`)
 - **Integração**: HTTP Proxy com o ALB
-- **Segurança**: Injeção automática do secret `X-Service-Token` em todas as requisições para o ALB
+- **Segurança**: Injeção automática do secret `X-Service-Token` e integração com Custom Authorizer
 - **Deploy**: Stages automatizados (dev, hom, prod)
 
 #### 8. **SQS Module** (`modules/sqs`)
 Filas de mensagens para comunicação assíncrona entre serviços:
 - **Fila principal** com configurações flexíveis de delay, retenção e visibilidade
-- **Dead Letter Queue (DLQ)** opcional com retenção personaizada e `maxReceiveCount` configurável
+- **Dead Letter Queue (DLQ)** opcional com retenção personalizada e `maxReceiveCount` configurável
 - **Criptografia** via KMS (CMK ou chave gerenciada pela AWS)
 - Suporte a **long polling** via `receive_wait_time_seconds`
+
+#### 9. **Lambda Authorizer Module** (`modules/lambda-authorizer`)
+Segurança e autorização customizada:
+- **Custom Authorizer**: Lambda function que valida tokens JWT
+- **Integração**: Conecta-se ao serviço de Auth via ALB para validação
+- **Cache**: Suporte a TTL para reduzir latência e custos de autorização
+
+#### 10. **SNS Module** (`modules/sns`)
+Sistema de mensageria Pub/Sub para arquitetura baseada em eventos:
+- **Topics**: Suporte a tópicos Standard e FIFO
+- **Fan-out**: Distribuição automática de mensagens para múltiplas filas SQS
+- **Criptografia**: Encriptação at-rest integrada com KMS
 
 
 
@@ -124,7 +137,7 @@ terraform destroy -var-file=inventories/dev/terraform.tfvars
 ## Estrutura do Projeto
 
 ```
-fase-2-oficina/
+Oficina-infra/
 │
 ├── .github/                          # Automação e CI/CD
 │   └── workflows/
@@ -139,6 +152,8 @@ fase-2-oficina/
 │   │   ├── node-group/               # Worker Nodes
 │   │   ├── alb/                      # Application Load Balancer
 │   │   ├── api-gateway/              # API Gateway REST API
+│   │   ├── lambda-authorizer/        # Custom Authorizer Lambda
+│   │   ├── sns/                      # Tópicos SNS para Fan-out
 │   │   └── sqs/                      # Filas SQS + DLQ opcional
 │   │
 │   ├── inventories/                  # Configurações por ambiente
