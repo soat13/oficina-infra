@@ -98,7 +98,6 @@ Sistema de mensageria Pub/Sub para arquitetura baseada em eventos:
 - **Criptografia**: Encriptação at-rest integrada com KMS
 
 
-
 ### Configuração por Ambiente
 
 A infraestrutura suporta múltiplos ambientes através de arquivos de variáveis em `infra/inventories/{env}/terraform.tfvars`:
