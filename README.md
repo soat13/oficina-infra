@@ -58,7 +58,7 @@ Worker nodes gerenciados:
 - **Instâncias**: t3.medium (configurável)
 - **AMI**: Amazon Linux 2023 (AL2023_x86_64_STANDARD)
 - **Capacity Type**: ON_DEMAND (ou SPOT para economia)
-- **Auto Scaling**: 1 (min) → 2 (desired) → 4 (max) nodes
+- **Auto Scaling**: 1 (min) → 1 (desired) → 4 (max) nodes
 - **Disk**: 20 GB gp3 por node
 - **Labels Kubernetes** customizados para workload placement
 - SSH opcional via EC2 Key Pair
@@ -66,7 +66,7 @@ Worker nodes gerenciados:
 #### 6. **ALB Module** (`modules/alb`)
 Application Load Balancer para distribuição de tráfego:
 - **Load Balancer**: Internet-facing, ouvindo na porta 80
-- **Target Groups**: Múltiplos grupos para diferentes serviços (App, Auth, Webhooks)
+- **Target Groups**: Múltiplos grupos para diferentes serviços (ms-oficina, ms-auth, ms-payment/webhooks)
 - **NodePort**: Redirecionamento para portas específicas (30007, 30008, 30009) nos worker nodes
 - **Segurança**: Security Group permitindo acesso HTTP externo
 - **Regras de Listener**: Roteamento baseado em path e validação do header `X-Service-Token`
@@ -96,7 +96,6 @@ Sistema de mensageria Pub/Sub para arquitetura baseada em eventos:
 - **Topics**: Suporte a tópicos Standard e FIFO
 - **Fan-out**: Distribuição automática de mensagens para múltiplas filas SQS
 - **Criptografia**: Encriptação at-rest integrada com KMS
-
 
 
 ### Configuração por Ambiente
