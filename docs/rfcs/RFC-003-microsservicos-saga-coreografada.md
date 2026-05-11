@@ -1,4 +1,4 @@
-# RFC-004: Divisão de Microsserviços (`ms-oficina`, `ms-auth`, `ms-payment`)
+# RFC-003: Divisão de Microsserviços (`ms-oficina`, `ms-auth`, `ms-payment`)
 
 - **Status:** Aprovado
 - **Data:** 2026-04-08
